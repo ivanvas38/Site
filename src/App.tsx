@@ -2,6 +2,8 @@ import React from 'react'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { PrivateRoute } from './components/PrivateRoute'
 import { AuthProvider } from './context/AuthContext'
 import { NavigationProvider, useNavigation } from './context/NavigationContext'
 
@@ -23,6 +25,11 @@ const AppContent: React.FC = () => {
       {currentPage === 'landing' && <LandingPage />}
       {currentPage === 'login' && <LoginPage />}
       {currentPage === 'register' && <RegisterPage />}
+      {currentPage === 'dashboard' && (
+        <PrivateRoute>
+          <DashboardPage />
+        </PrivateRoute>
+      )}
     </div>
   )
 }

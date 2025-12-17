@@ -81,7 +81,7 @@ export const RegisterPage: React.FC = () => {
       await register(formData.email, formData.username, formData.password)
       setSuccess(true)
       setTimeout(() => {
-        navigate('login')
+        navigate('dashboard')
       }, 2000)
     } catch (err) {
       // Error is handled by AuthContext
