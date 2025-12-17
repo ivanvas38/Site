@@ -5,6 +5,7 @@ import { useNavigation } from '../context/NavigationContext'
 import { ConversationsList } from '../components/ConversationsList'
 import { ChatWindow } from '../components/ChatWindow'
 import { UsersList } from '../components/UsersList'
+import ActivityTracker from '../components/ActivityTracker'
 import { messengerApi } from '../utils/api'
 import type { Conversation, Message, User as UserType } from '../utils/api'
 
@@ -247,7 +248,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div>
             <h1 className="font-semibold text-gray-900 dark:text-white">
-              {user?.username}
+              {user?.name}
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {user?.email}
@@ -336,6 +337,9 @@ export const DashboardPage: React.FC = () => {
           loading={loading.users}
         />
       )}
+
+      {/* Activity Tracker for online status updates */}
+      <ActivityTracker enabled={true} intervalMs={30000} />
     </div>
   )
 }

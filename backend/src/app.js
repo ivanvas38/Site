@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const usersRoutes = require('./routes/users');
 const { createTables } = require('./config/database');
 
 const app = express();
@@ -33,6 +34,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 
 app.use('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

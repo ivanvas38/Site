@@ -2,6 +2,7 @@ import React from 'react'
 import { Search, MessageSquare, ArrowLeft } from 'lucide-react'
 import type { Conversation } from '../utils/api'
 import { MessageStatus } from './MessageStatus'
+import UserAvatar from './UserAvatar'
 
 interface ConversationsListProps {
   conversations: Conversation[]
@@ -165,17 +166,13 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
             >
               <div className="flex items-center gap-3">
                 {/* Avatar */}
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-sm">
-                    {conversation.otherUser.username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                <UserAvatar user={conversation.otherUser} size="md" showOnlineStatus={true} />
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                      {conversation.otherUser.username}
+                      {conversation.otherUser.name}
                     </h3>
                     <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
                       {formatTime(conversation.lastMessage?.createdAt || conversation.updatedAt)}

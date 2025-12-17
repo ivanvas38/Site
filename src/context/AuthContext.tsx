@@ -6,8 +6,12 @@ import { useNavigation } from './NavigationContext'
 export interface User {
   id: string
   email: string
-  username: string
+  name: string
+  avatar?: string
+  lastSeenAt?: string
+  isOnline?: boolean
   createdAt?: string
+  updatedAt?: string
 }
 
 export interface AuthContextType {
@@ -16,10 +20,11 @@ export interface AuthContextType {
   isLoading: boolean
   error: string | null
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
-  register: (email: string, username: string, password: string) => Promise<void>
+  register: (email: string, name: string, password: string) => Promise<void>
   logout: () => void
   clearError: () => void
   restoreSession: () => Promise<void>
+  updateUser: (userData: User) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -101,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true)
       setError(null)
 
-      const result = await authApi.register({ email, username, password })
+      const result = await authApi.register({ email, name, password })
 
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Ошибка регистрации')
@@ -135,6 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null)
   }, [])
 
+  const updateUser = useCallback((userData: User) => {
+    setUser(userData)
+  }, [])
+
   const value: AuthContextType = {
     user,
     isAuthenticated: user !== null,
@@ -145,6 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     clearError,
     restoreSession,
+    updateUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

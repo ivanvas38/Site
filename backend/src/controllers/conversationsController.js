@@ -23,7 +23,10 @@ export const getConversations = async (req, res) => {
           otherUser: {
             id: otherUser.id,
             email: otherUser.email,
-            username: otherUser.username
+            name: otherUser.name,
+            avatar: otherUser.avatar,
+            lastSeenAt: otherUser.last_seen_at,
+            isOnline: otherUser.is_online
           },
           lastMessage: lastMessage ? {
             text: lastMessage.text,
@@ -80,7 +83,7 @@ export const getConversationMessages = async (req, res) => {
     const formattedMessages = messages.map(msg => ({
       id: msg.id,
       senderId: msg.sender_id,
-      senderUsername: msg.sender_username,
+      senderName: msg.sender_name,
       text: msg.text,
       deliveredAt: msg.delivered_at,
       readAt: msg.read_at,

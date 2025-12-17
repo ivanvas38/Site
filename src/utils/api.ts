@@ -15,7 +15,7 @@ export interface LoginPayload {
 
 export interface RegisterPayload {
   email: string
-  username: string
+  name: string
   password: string
 }
 
@@ -23,7 +23,10 @@ export interface LoginResponse {
   user: {
     id: string
     email: string
-    username: string
+    name: string
+    avatar?: string
+    lastSeenAt?: string
+    isOnline?: boolean
   }
   token: string
 }
@@ -32,7 +35,10 @@ export interface RegisterResponse {
   user: {
     id: string
     email: string
-    username: string
+    name: string
+    avatar?: string
+    lastSeenAt?: string
+    isOnline?: boolean
   }
   token: string
 }
@@ -103,7 +109,7 @@ export const authApi = {
   },
 
   getCurrentUser: async () => {
-    return fetchApi('/auth/me', {
+    return fetchApi('/auth/profile', {
       method: 'GET',
     })
   },
@@ -112,14 +118,19 @@ export const authApi = {
 export interface User {
   id: string
   email: string
-  username: string
+  name: string
+  avatar?: string
+  lastSeenAt?: string
+  isOnline?: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Message {
   id: string
   text: string
   senderId: string
-  senderUsername: string
+  senderName: string
   deliveredAt: string | null
   readAt: string | null
   createdAt: string
@@ -202,5 +213,38 @@ export const messengerApi = {
     return fetchApi<{ message: string }>(`/messages/${messageId}/read`, {
       method: 'PATCH'
     })
+  },
+
+  // Получить профиль пользователя по ID
+  getUserById: async (userId: string) => {
+    return fetchApi<User>(`/users/${userId}`, { method: 'GET' })
+  },
+
+  // Обновить профиль пользователя
+  updateProfile: async (data: { name?: string; avatar?: string }) => {
+    return fetchApi<User>('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  },
+
+  // Загрузить аватар
+  updateAvatar: async (avatar: string) => {
+    return fetchApi<User>('/users/profile/avatar', {
+      method: 'POST',
+      body: JSON.stringify({ avatar })
+    })
+  },
+
+  // Обновить активность пользователя
+  updateActivity: async () => {
+    return fetchApi<User>('/users/activity', {
+      method: 'POST'
+    })
+  },
+
+  // Получить онлайн пользователей
+  getOnlineUsers: async () => {
+    return fetchApi<User[]>('/users/online', { method: 'GET' })
   }
 }

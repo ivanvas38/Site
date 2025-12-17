@@ -12,7 +12,9 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
-    avatar_url VARCHAR(500),
+    avatar VARCHAR(500),
+    last_seen_at TIMESTAMP NULL,
+    is_online BOOLEAN DEFAULT FALSE,
     phone VARCHAR(20),
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
@@ -24,7 +26,9 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_email (email),
     INDEX idx_active (is_active),
     INDEX idx_verified (is_verified),
-    INDEX idx_created_at (created_at)
+    INDEX idx_created_at (created_at),
+    INDEX idx_last_seen_at (last_seen_at),
+    INDEX idx_is_online (is_online)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Таблица ролей пользователей
