@@ -11,7 +11,7 @@ interface AvatarCropperProps {
 
 const AvatarCropper: React.FC<AvatarCropperProps> = ({ imageSrc, onCropComplete, onCancel }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  // const [isDragging, setIsDragging] = useState(false);
   const [cropArea, setCropArea] = useState({ x: 50, y: 50, size: 100 });
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {

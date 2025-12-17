@@ -106,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true)
       setError(null)
 
+      const name = username
       const result = await authApi.register({ email, name, password })
 
       if (!result.success || !result.data) {

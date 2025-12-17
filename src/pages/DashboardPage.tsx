@@ -165,6 +165,48 @@ export const DashboardPage: React.FC = () => {
     }
   }
 
+  const handleEditMessage = async (messageId: string, newText: string) => {
+    if (!selectedConversation) return
+
+    try {
+      const result = await messengerApi.editMessage(messageId, newText)
+      if (result.success && result.data) {
+        // Update the message in the local state
+        const updatedMessage = result.data.message
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId ? updatedMessage : msg
+        ))
+        
+        // Refresh conversations to update last message if needed
+        loadConversations()
+      }
+    } catch (error) {
+      console.error('Failed to edit message:', error)
+      throw error // Re-throw to let ChatWindow handle it
+    }
+  }
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!selectedConversation) return
+
+    try {
+      const result = await messengerApi.deleteMessage(messageId)
+      if (result.success && result.data) {
+        // Update the message in the local state
+        const deletedMessage = result.data.message
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId ? deletedMessage : msg
+        ))
+        
+        // Refresh conversations to update last message if needed
+        loadConversations()
+      }
+    } catch (error) {
+      console.error('Failed to delete message:', error)
+      throw error // Re-throw to let ChatWindow handle it
+    }
+  }
+
   const handleNewDialog = async () => {
     await loadUsers()
     setShowUsersList(true)
@@ -231,7 +273,7 @@ export const DashboardPage: React.FC = () => {
 
   // Filter conversations based on search term
   const filteredConversations = conversations.filter(conversation =>
-    conversation.otherUser.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conversation.otherUser.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (conversation.lastMessage?.text && 
      conversation.lastMessage.text.toLowerCase().includes(searchTerm.toLowerCase()))
   )
@@ -243,7 +285,7 @@ export const DashboardPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
             <span className="text-white font-semibold text-sm">
-              {user?.username?.charAt(0).toUpperCase()}
+              {user?.name?.charAt(0).toUpperCase()}
             </span>
           </div>
           <div>
@@ -295,6 +337,8 @@ export const DashboardPage: React.FC = () => {
             messages={messages}
             currentUser={user}
             onSendMessage={handleSendMessage}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
             onClose={handleCloseChat}
             loading={loading.messages}
           />
@@ -321,6 +365,8 @@ export const DashboardPage: React.FC = () => {
               messages={messages}
               currentUser={user}
               onSendMessage={handleSendMessage}
+              onEditMessage={handleEditMessage}
+              onDeleteMessage={handleDeleteMessage}
               loading={loading.messages}
               onBack={() => setMobileView('conversations')}
             />

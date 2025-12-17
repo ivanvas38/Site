@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Send, ArrowLeft } from 'lucide-react'
 import type { Message, Conversation, User as UserType } from '../utils/api'
 import { MessageStatus } from './MessageStatus'
+import { MessageActions } from './MessageActions'
 import { messengerApi } from '../utils/api'
 import UserAvatar from './UserAvatar'
 
@@ -10,6 +11,8 @@ interface ChatWindowProps {
   messages: Message[]
   currentUser: UserType | null
   onSendMessage: (text: string) => void
+  onEditMessage?: (messageId: string, newText: string) => void
+  onDeleteMessage?: (messageId: string) => void
   onBack?: () => void
   onClose?: () => void
   loading?: boolean
@@ -20,6 +23,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   currentUser,
   onSendMessage,
+  onEditMessage,
+  onDeleteMessage,
   onBack,
   onClose,
   loading = false,
@@ -82,6 +87,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
+    }
+  }
+
+  const handleEditMessage = async (messageId: string, newText: string) => {
+    if (!onEditMessage) return
+    
+    try {
+      await onEditMessage(messageId, newText)
+    } catch (error) {
+      console.error('Failed to edit message:', error)
+    }
+  }
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!onDeleteMessage) return
+    
+    try {
+      await onDeleteMessage(messageId)
+    } catch (error) {
+      console.error('Failed to delete message:', error)
     }
   }
 
@@ -238,36 +263,65 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 return (
                   <div
                     key={message.id}
-                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-2`}
+                    className={`flex group ${isOwn ? 'justify-end' : 'justify-start'} mb-2`}
                   >
                     <div className={`flex max-w-xs lg:max-w-md ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                       {/* Avatar */}
-                      {!isOwn && (
+                      {showAvatar && (
                         <UserAvatar user={selectedConversation.otherUser} size="sm" showOnlineStatus={false} />
                       )}
 
                       {/* Message Bubble */}
                       <div
                         className={`px-4 py-2 rounded-2xl relative ${
-                          isOwn
+                          message.isDeleted
+                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 italic'
+                            : isOwn
                             ? 'bg-blue-500 text-white rounded-br-sm'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm'
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                        <div className="flex items-center justify-end gap-1">
+                        {/* Deleted message indicator */}
+                        {message.isDeleted ? (
+                          <p className="text-sm">Сообщение удалено</p>
+                        ) : (
+                          <>
+                            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                            <MessageActions
+                              message={message}
+                              isOwn={isOwn}
+                              onEdit={handleEditMessage}
+                              onDelete={handleDeleteMessage}
+                            />
+                          </>
+                        )}
+                        
+                        {/* Message info */}
+                        {!message.isDeleted && (
+                          <div className="flex items-center justify-end gap-1">
+                            <p className={`text-xs mt-1 ${
+                              isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                            }`}>
+                              {formatTime(message.createdAt)}
+                              {message.isEdited ? ' (изменено)' : ''}
+                            </p>
+                            <MessageStatus
+                              deliveredAt={message.deliveredAt}
+                              readAt={message.readAt}
+                              isOwn={isOwn}
+                              size="sm"
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Deleted message time */}
+                        {message.isDeleted && (
                           <p className={`text-xs mt-1 ${
-                            isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                            isOwn ? 'text-gray-300' : 'text-gray-400 dark:text-gray-500'
                           }`}>
-                            {formatTime(message.createdAt)}
+                            {formatTime(message.createdAt)} • удалено
                           </p>
-                          <MessageStatus
-                            deliveredAt={message.deliveredAt}
-                            readAt={message.readAt}
-                            isOwn={isOwn}
-                            size="sm"
-                          />
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>

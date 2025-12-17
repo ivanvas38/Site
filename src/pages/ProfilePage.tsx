@@ -59,11 +59,11 @@ export const ProfilePage: React.FC = () => {
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4">
                 <span className="text-white font-bold text-3xl">
-                  {user.username?.charAt(0).toUpperCase()}
+                  {user.name?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <h2 className="text-2xl font-bold text-white mb-1">
-                {user.username}
+                {user.name}
               </h2>
               <p className="text-blue-100">
                 Активный пользователь мессенджера
@@ -84,7 +84,7 @@ export const ProfilePage: React.FC = () => {
                     Имя пользователя
                   </p>
                   <p className="text-lg text-gray-900 dark:text-white">
-                    {user.username}
+                    {user.name}
                   </p>
                 </div>
               </div>
