@@ -119,6 +119,7 @@ export interface User {
   id: string
   email: string
   name: string
+  username?: string
   avatar?: string
   lastSeenAt?: string
   isOnline?: boolean
@@ -134,6 +135,9 @@ export interface Message {
   deliveredAt: string | null
   readAt: string | null
   createdAt: string
+  isEdited?: number
+  isDeleted?: number
+  editedAt?: string | null
 }
 
 export interface Conversation {
@@ -246,5 +250,20 @@ export const messengerApi = {
   // Получить онлайн пользователей
   getOnlineUsers: async () => {
     return fetchApi<User[]>('/users/online', { method: 'GET' })
+  },
+
+  // Редактировать сообщение
+  editMessage: async (messageId: string, text: string) => {
+    return fetchApi<{ message: Message }>(`/messages/${messageId}/edit`, {
+      method: 'PATCH',
+      body: JSON.stringify({ text })
+    })
+  },
+
+  // Удалить сообщение
+  deleteMessage: async (messageId: string) => {
+    return fetchApi<{ message: Message }>(`/messages/${messageId}`, {
+      method: 'DELETE'
+    })
   }
 }
