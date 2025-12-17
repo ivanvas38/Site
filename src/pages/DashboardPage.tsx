@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { LogOut } from 'lucide-react'
+import { LogOut, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useNavigation } from '../context/NavigationContext'
 import { ConversationsList } from '../components/ConversationsList'
 import { ChatWindow } from '../components/ChatWindow'
 import { UsersList } from '../components/UsersList'
@@ -8,6 +9,7 @@ import { messengerApi, type Conversation, type Message, type User } from '../uti
 
 export const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth()
+  const { navigate } = useNavigation()
 
   // State management
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -28,27 +30,67 @@ export const DashboardPage: React.FC = () => {
     loadConversations()
   }, [])
 
-  // Load messages when conversation is selected
+  // Optimized real-time polling for new messages and conversation updates
   useEffect(() => {
-    if (selectedConversation) {
-      loadMessages(selectedConversation.id)
-    }
-  }, [selectedConversation])
+    if (!selectedConversation) return;
 
-  // Real-time polling for new messages and conversation updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Always refresh conversations list
-      loadConversations()
-      
-      // If a conversation is selected, refresh its messages
-      if (selectedConversation) {
-        loadMessages(selectedConversation.id)
+    // Load initial messages when conversation is selected
+    const loadInitialMessages = async () => {
+      const result = await messengerApi.getConversationMessages(selectedConversation.id);
+      if (result.success && result.data) {
+        setMessages(result.data);
+        
+        // Auto scroll to bottom after loading
+        setTimeout(() => {
+          const chatWindow = document.querySelector('.chat-messages');
+          if (chatWindow) {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+          }
+        }, 100);
       }
-    }, 3000) // Every 3 seconds
+      setLoading(prev => ({ ...prev, messages: false }));
+    };
 
-    return () => clearInterval(interval)
-  }, [selectedConversation])
+    loadInitialMessages();
+
+    // Polling for new messages only (every 3 seconds)
+    const messageInterval = setInterval(async () => {
+      try {
+        const lastMessageId = messages[messages.length - 1]?.id || 0;
+        
+        const result = await messengerApi.getConversationMessages(selectedConversation.id);
+        if (result.success && result.data) {
+          // Filter only new messages (with ID > lastMessageId)
+          const newMessages = result.data.filter(msg => msg.id > lastMessageId);
+          
+          // If there are new messages, add them to the end
+          if (newMessages.length > 0) {
+            setMessages(prev => [...prev, ...newMessages]);
+            
+            // Auto scroll to new messages
+            setTimeout(() => {
+              const chatWindow = document.querySelector('.chat-messages');
+              if (chatWindow) {
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+              }
+            }, 0);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load new messages:', error);
+      }
+    }, 3000);
+
+    // Separate interval for updating conversations list (less frequently - every 5 seconds)
+    const conversationInterval = setInterval(() => {
+      loadConversations();
+    }, 5000);
+
+    return () => {
+      clearInterval(messageInterval);
+      clearInterval(conversationInterval);
+    };
+  }, [selectedConversation, messages]);
 
   const loadConversations = async () => {
     setLoading(prev => ({ ...prev, conversations: true }))
@@ -101,7 +143,17 @@ export const DashboardPage: React.FC = () => {
         // The backend returns { message: {...}, conversation: {...} }
         const newMessage = result.data.message
         if (newMessage) {
+          // Add message locally for immediate feedback
           setMessages(prev => [...prev, newMessage])
+          
+          // Auto scroll to the new message
+          setTimeout(() => {
+            const chatWindow = document.querySelector('.chat-messages');
+            if (chatWindow) {
+              chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+          }, 0);
+          
           // Refresh conversations to update last message
           loadConversations()
         }
@@ -202,13 +254,22 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('profile')}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+            title="Перейти к профилю"
+          >
+            <User className="w-4 h-4" />
+            Профиль
+          </button>
           <button
             onClick={handleLogout}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            title="Выход"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+            title="Выйти из аккаунта"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4" />
+            Выход
           </button>
         </div>
       </div>
