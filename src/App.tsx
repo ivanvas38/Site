@@ -3,6 +3,7 @@ import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NavigationProvider, useNavigation } from './context/NavigationContext'
 import { PrivateRoute } from './components/PrivateRoute'
@@ -31,7 +32,7 @@ const AppContent: React.FC = () => {
       navigate('dashboard')
     }
 
-    if (!isAuthenticated && currentPage === 'dashboard') {
+    if (!isAuthenticated && (currentPage === 'dashboard' || currentPage === 'profile')) {
       navigate('login')
     }
   }, [currentPage, isAuthenticated, isLoading, navigate])
@@ -55,6 +56,11 @@ const AppContent: React.FC = () => {
       {currentPage === 'dashboard' && (
         <PrivateRoute>
           <DashboardPage />
+        </PrivateRoute>
+      )}
+      {currentPage === 'profile' && (
+        <PrivateRoute>
+          <ProfilePage />
         </PrivateRoute>
       )}
     </div>

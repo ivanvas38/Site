@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
-export type PageType = 'landing' | 'login' | 'register' | 'dashboard'
+export type PageType = 'landing' | 'login' | 'register' | 'dashboard' | 'profile'
 
 interface NavigationContextType {
   currentPage: PageType
@@ -15,6 +15,7 @@ const pageToPath: Record<PageType, string> = {
   login: '/login',
   register: '/register',
   dashboard: '/dashboard',
+  profile: '/profile',
 }
 
 const pathToPage = (path: string): PageType => {
@@ -27,6 +28,8 @@ const pathToPage = (path: string): PageType => {
       return 'register'
     case '/dashboard':
       return 'dashboard'
+    case '/profile':
+      return 'profile'
     case '/':
     default:
       return 'landing'
