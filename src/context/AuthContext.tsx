@@ -39,11 +39,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authApi.getCurrentUser()
       if (response.success && response.data) {
-        // Handle potentially different response structures
-        const data = response.data as any
-        const userData = data.user || data
+        // API /auth/me возвращает { success: true, data: { user: {...} } }
+        // Или { success: true, data: {...} }
+        const userData = (response.data as any).user || response.data
         setUser(userData as User)
       } else {
+        // Если ответ неуспешный, очищаем токен
         localStorage.removeItem('token')
       }
     } catch (err) {
