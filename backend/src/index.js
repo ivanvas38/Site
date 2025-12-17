@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
+import { createTables } from './config/database.js';
 
 dotenv.config();
 
@@ -20,8 +22,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'Server is running' });
 });
 
-// API Routes (будут добавлены позже)
-// app.use('/api/auth', authRoutes);
+// API Routes
+app.use('/api/auth', authRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/messages', messageRoutes);
 // app.use('/api/conversations', conversationRoutes);
@@ -39,8 +41,20 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Initialize database
+const startServer = async () => {
+  try {
+    await createTables();
+    console.log('База данных инициализирована');
+    
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    console.error('Ошибка запуска сервера:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();

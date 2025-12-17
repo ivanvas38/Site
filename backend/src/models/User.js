@@ -1,4 +1,4 @@
-const { executeQuery } = require('../config/database');
+import { executeQuery } from '../config/database.js';
 
 class User {
   static async create({ email, username, passwordHash }) {
@@ -85,4 +85,4 @@ class User {
   }
 }
 
-module.exports = User;
+export default User;
