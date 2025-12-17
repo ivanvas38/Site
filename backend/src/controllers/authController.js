@@ -6,13 +6,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 const register = async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, name, password } = req.body;
 
     // Basic validation
-    if (!email || !username || !password) {
+    if (!email || !name || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email, username и пароль обязательны'
+        message: 'Email, имя и пароль обязательны'
       });
     }
 
@@ -39,11 +39,11 @@ const register = async (req, res) => {
       });
     }
 
-    const existingUsername = await User.findByUsername(username);
-    if (existingUsername) {
+    const existingName = await User.findByUsername(name);
+    if (existingName) {
       return res.status(400).json({
         success: false,
-        message: 'Пользователь с таким username уже существует'
+        message: 'Пользователь с таким именем уже существует'
       });
     }
 
@@ -51,7 +51,7 @@ const register = async (req, res) => {
 
     const user = await User.create({
       email,
-      username,
+      name,
       passwordHash
     });
 
@@ -68,7 +68,10 @@ const register = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          username: user.username
+          name: user.name,
+          avatar: user.avatar,
+          lastSeenAt: user.last_seen_at,
+          isOnline: user.is_online
         },
         token
       }
@@ -110,6 +113,9 @@ const login = async (req, res) => {
       });
     }
 
+    // Update last seen and online status on login
+    await User.updateLastSeen(user.id);
+
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       JWT_SECRET,
@@ -123,7 +129,10 @@ const login = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          username: user.username
+          name: user.name,
+          avatar: user.avatar,
+          lastSeenAt: user.last_seen_at,
+          isOnline: user.is_online
         },
         token
       }
@@ -154,7 +163,12 @@ const getProfile = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          username: user.username
+          name: user.name,
+          avatar: user.avatar,
+          lastSeenAt: user.last_seen_at,
+          isOnline: user.is_online,
+          createdAt: user.created_at,
+          updatedAt: user.updated_at
         }
       }
     });

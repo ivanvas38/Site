@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Search, X, MessageSquare } from 'lucide-react'
 import type { User } from '../utils/api'
+import UserAvatar from './UserAvatar'
 
 interface UsersListProps {
   users: User[]
@@ -18,7 +19,7 @@ export const UsersList: React.FC<UsersListProps> = ({
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -95,16 +96,12 @@ export const UsersList: React.FC<UsersListProps> = ({
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
               >
                 {/* Avatar */}
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-sm">
-                    {user.username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                <UserAvatar user={user} size="md" showOnlineStatus={true} />
 
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                    {user.username}
+                    {user.name}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                     {user.email}

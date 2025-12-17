@@ -3,6 +3,7 @@ import { Send, ArrowLeft } from 'lucide-react'
 import type { Message, Conversation, User as UserType } from '../utils/api'
 import { MessageStatus } from './MessageStatus'
 import { messengerApi } from '../utils/api'
+import UserAvatar from './UserAvatar'
 
 interface ChatWindowProps {
   selectedConversation: Conversation | null
@@ -168,18 +169,24 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             </button>
           )}
           
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-semibold text-sm">
-              {selectedConversation.otherUser.username.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <UserAvatar user={selectedConversation.otherUser} size="md" showOnlineStatus={true} />
           
           <div className="flex-1">
             <h2 className="font-semibold text-gray-900 dark:text-white">
-              {selectedConversation.otherUser.username}
+              {selectedConversation.otherUser.name}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {selectedConversation.otherUser.email}
+              {selectedConversation.otherUser.isOnline ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  В сети
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  Не в сети
+                </span>
+              )}
             </p>
           </div>
           {onClose && (
@@ -236,11 +243,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     <div className={`flex max-w-xs lg:max-w-md ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                       {/* Avatar */}
                       {!isOwn && (
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mr-2">
-                          <span className="text-white font-semibold text-xs">
-                            {showAvatar ? selectedConversation.otherUser.username.charAt(0).toUpperCase() : ''}
-                          </span>
-                        </div>
+                        <UserAvatar user={selectedConversation.otherUser} size="sm" showOnlineStatus={false} />
                       )}
 
                       {/* Message Bubble */}

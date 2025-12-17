@@ -10,7 +10,7 @@ class Message {
       
       // Get the created message with sender info
       const [rows] = await executeQuery(
-        `SELECT m.*, u.username as sender_username 
+        `SELECT m.*, u.name as sender_name 
          FROM messages m
          JOIN users u ON m.sender_id = u.id
          WHERE m.id = ?`,
@@ -26,7 +26,7 @@ class Message {
   static async getByConversationId(conversationId) {
     try {
       const [rows] = await executeQuery(
-        `SELECT m.*, u.username as sender_username 
+        `SELECT m.*, u.name as sender_name 
          FROM messages m
          JOIN users u ON m.sender_id = u.id
          WHERE m.conversation_id = ?
@@ -65,7 +65,7 @@ class Message {
   static async getById(messageId) {
     try {
       const [rows] = await executeQuery(
-        `SELECT m.*, u.username as sender_username 
+        `SELECT m.*, u.name as sender_name 
          FROM messages m
          JOIN users u ON m.sender_id = u.id
          WHERE m.id = ?`,
