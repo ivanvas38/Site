@@ -1,0 +1,44 @@
+node_modules/
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+coverage/
+dist/
+build/
+*.log
+.vscode/
+.idea/
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables (НЕ КОММИТИТЬ!)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build files
+/dist
+/build
+
+# Misc
+tmp/
+temp/
