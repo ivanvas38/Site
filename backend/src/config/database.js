@@ -1,16 +1,31 @@
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { mkdirSync } from 'fs';
+
 const require = createRequire(import.meta.url);
 const sqlite3 = require('sqlite3').verbose();
-import { promisify } from 'util';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const dataDir = join(__dirname, '../../data');
+const dbPath = join(dataDir, 'backend.db');
+
+// Create data directory if it doesn't exist
+try {
+  mkdirSync(dataDir, { recursive: true });
+  console.log(`Data directory ensured at: ${dataDir}`);
+} catch (error) {
+  console.error('Error creating data directory:', error.message);
+}
 
 let db;
 
 try {
-  db = new sqlite3.Database(':memory:', (err) => {
+  db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
       console.error('Ошибка подключения к SQLite:', err.message);
     } else {
-      console.log('Подключен к SQLite в памяти');
+      console.log(`Подключен к SQLite: ${dbPath}`);
     }
   });
 } catch (error) {
