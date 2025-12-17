@@ -5,6 +5,7 @@ import { MessageStatus } from './MessageStatus'
 import { MessageActions } from './MessageActions'
 import { messengerApi } from '../utils/api'
 import UserAvatar from './UserAvatar'
+import { formatTimeInTimezone, formatDateInTimezone } from '../utils/timezone'
 
 interface ChatWindowProps {
   selectedConversation: Conversation | null
@@ -111,44 +112,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-    if (days === 0) {
-      return date.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
-    } else if (days === 1) {
-      return 'Вчера'
-    } else if (days < 7) {
-      return date.toLocaleDateString('ru-RU', { weekday: 'short' })
-    } else {
-      return date.toLocaleDateString('ru-RU', { 
-        day: '2-digit', 
-        month: '2-digit' 
-      })
-    }
+    const userTimezone = currentUser?.timezone || 'UTC'
+    return formatTimeInTimezone(timestamp, userTimezone)
   }
 
   const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Сегодня'
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Вчера'
-    } else {
-      return date.toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'long'
-      })
-    }
+    const userTimezone = currentUser?.timezone || 'UTC'
+    return formatDateInTimezone(timestamp, userTimezone)
   }
 
   // Group messages by date

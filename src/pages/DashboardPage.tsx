@@ -330,6 +330,7 @@ export const DashboardPage: React.FC = () => {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             loading={loading.conversations}
+            userTimezone={user?.timezone || 'UTC'}
           />
 
           <ChatWindow
@@ -356,6 +357,7 @@ export const DashboardPage: React.FC = () => {
               onSearchChange={setSearchTerm}
               loading={loading.conversations}
               onBack={() => setMobileView('chat')}
+              userTimezone={user?.timezone || 'UTC'}
             />
           )}
 

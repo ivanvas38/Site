@@ -1,11 +1,11 @@
 import { executeQuery } from '../config/database.js';
 
 class User {
-  static async create({ email, name, passwordHash }) {
+  static async create({ email, name, passwordHash, timezone = 'UTC' }) {
     try {
       const [result] = await executeQuery(
-        'INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)',
-        [email, name, passwordHash]
+        'INSERT INTO users (email, name, password_hash, timezone) VALUES (?, ?, ?, ?)',
+        [email, name, passwordHash, timezone]
       );
       
       return this.findById(result.insertId);
@@ -23,7 +23,7 @@ class User {
   static async findById(id) {
     try {
       const [rows] = await executeQuery(
-        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, created_at, updated_at FROM users WHERE id = ?',
+        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE id = ?',
         [id]
       );
       
@@ -36,7 +36,7 @@ class User {
   static async findByEmail(email) {
     try {
       const [rows] = await executeQuery(
-        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, created_at, updated_at FROM users WHERE email = ?',
+        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE email = ?',
         [email]
       );
       
@@ -49,7 +49,7 @@ class User {
   static async findByUsername(username) {
     try {
       const [rows] = await executeQuery(
-        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, created_at, updated_at FROM users WHERE name = ?',
+        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE name = ?',
         [username]
       );
       
@@ -62,7 +62,7 @@ class User {
   static async findByEmailOrUsername(emailOrUsername) {
     try {
       const [rows] = await executeQuery(
-        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, created_at, updated_at FROM users WHERE email = ? OR name = ?',
+        'SELECT id, email, name, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE email = ? OR name = ?',
         [emailOrUsername, emailOrUsername]
       );
       
@@ -75,7 +75,7 @@ class User {
   static async getAll() {
     try {
       const [rows] = await executeQuery(
-        'SELECT id, email, name, avatar, last_seen_at, is_online, created_at, updated_at FROM users ORDER BY created_at DESC'
+        'SELECT id, email, name, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users ORDER BY created_at DESC'
       );
       
       return rows;
@@ -84,7 +84,7 @@ class User {
     }
   }
 
-  static async updateProfile(id, { name, avatar }) {
+  static async updateProfile(id, { name, avatar, timezone }) {
     try {
       const updateFields = [];
       const values = [];
@@ -97,6 +97,11 @@ class User {
       if (avatar !== undefined) {
         updateFields.push('avatar = ?');
         values.push(avatar);
+      }
+
+      if (timezone !== undefined) {
+        updateFields.push('timezone = ?');
+        values.push(timezone);
       }
 
       if (updateFields.length === 0) {
@@ -145,7 +150,7 @@ class User {
   static async getOnlineUsers() {
     try {
       const [rows] = await executeQuery(
-        'SELECT id, email, name, avatar, last_seen_at, is_online, created_at, updated_at FROM users WHERE is_online = 1 ORDER BY name ASC'
+        'SELECT id, email, name, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE is_online = 1 ORDER BY name ASC'
       );
       
       return rows;

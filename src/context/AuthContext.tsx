@@ -10,6 +10,7 @@ export interface User {
   avatar?: string
   lastSeenAt?: string
   isOnline?: boolean
+  timezone?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -107,7 +108,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null)
 
       const name = username
-      const result = await authApi.register({ email, name, password })
+      // Determine timezone from browser
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+      
+      const result = await authApi.register({ email, name, password, timezone })
 
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Ошибка регистрации')

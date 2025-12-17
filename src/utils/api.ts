@@ -17,6 +17,7 @@ export interface RegisterPayload {
   email: string
   name: string
   password: string
+  timezone?: string
 }
 
 export interface LoginResponse {
@@ -27,6 +28,7 @@ export interface LoginResponse {
     avatar?: string
     lastSeenAt?: string
     isOnline?: boolean
+    timezone?: string
   }
   token: string
 }
@@ -39,6 +41,7 @@ export interface RegisterResponse {
     avatar?: string
     lastSeenAt?: string
     isOnline?: boolean
+    timezone?: string
   }
   token: string
 }
@@ -123,6 +126,7 @@ export interface User {
   avatar?: string
   lastSeenAt?: string
   isOnline?: boolean
+  timezone?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -225,7 +229,7 @@ export const messengerApi = {
   },
 
   // Обновить профиль пользователя
-  updateProfile: async (data: { name?: string; avatar?: string }) => {
+  updateProfile: async (data: { name?: string; avatar?: string; timezone?: string }) => {
     return fetchApi<User>('/users/profile', {
       method: 'PUT',
       body: JSON.stringify(data)

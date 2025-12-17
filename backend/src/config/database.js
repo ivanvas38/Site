@@ -43,6 +43,7 @@ const createTables = async () => {
         avatar TEXT DEFAULT NULL,
         last_seen_at DATETIME DEFAULT NULL,
         is_online BOOLEAN DEFAULT 0,
+        timezone TEXT DEFAULT 'UTC',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -122,6 +123,18 @@ const createTables = async () => {
       });
     });
     console.log('Колонки delivered_at и read_at добавлены в таблицу messages');
+
+    // Add timezone column to users table
+    await new Promise((resolve, reject) => {
+      db.run(`ALTER TABLE users ADD COLUMN timezone TEXT DEFAULT 'UTC'`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    console.log('Колонка timezone добавлена в таблицу users');
 
     // Create unique constraint index for conversations
     await new Promise((resolve, reject) => {
