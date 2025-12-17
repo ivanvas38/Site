@@ -18,6 +18,7 @@ export interface AuthContextType {
   register: (email: string, username: string, password: string) => Promise<void>
   logout: () => void
   clearError: () => void
+  restoreSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -41,8 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.success && response.data) {
         // API /auth/me возвращает { success: true, data: { user: {...} } }
         // Или { success: true, data: {...} }
-        const userData = (response.data as any).user || response.data
-        setUser(userData as User)
+        const responseData = response.data as { user?: User } | User
+        const userData = 'user' in responseData ? responseData.user : responseData
+        setUser(userData)
       } else {
         // Если ответ неуспешный, очищаем токен
         localStorage.removeItem('token')
@@ -134,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     clearError,
+    restoreSession,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
