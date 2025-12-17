@@ -5,7 +5,8 @@ import { useNavigation } from '../context/NavigationContext'
 import { ConversationsList } from '../components/ConversationsList'
 import { ChatWindow } from '../components/ChatWindow'
 import { UsersList } from '../components/UsersList'
-import { messengerApi, type Conversation, type Message, type User } from '../utils/api'
+import { messengerApi } from '../utils/api'
+import type { Conversation, Message, User as UserType } from '../utils/api'
 
 export const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth()
@@ -15,7 +16,7 @@ export const DashboardPage: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserType[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showUsersList, setShowUsersList] = useState(false)
   const [mobileView, setMobileView] = useState<'conversations' | 'chat'>('conversations')
