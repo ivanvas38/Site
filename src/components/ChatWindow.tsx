@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Send, ArrowLeft } from 'lucide-react'
 import type { Message, Conversation, User as UserType } from '../utils/api'
+import { MessageStatus } from './MessageStatus'
+import { messengerApi } from '../utils/api'
 
 interface ChatWindowProps {
   selectedConversation: Conversation | null
@@ -23,6 +25,50 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 }) => {
   const [inputText, setInputText] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Mark incoming messages as delivered when conversation loads
+  useEffect(() => {
+    if (selectedConversation && messages.length > 0 && currentUser) {
+      const deliverMessages = async () => {
+        const incomingMessages = messages.filter(
+          msg => msg.senderId !== currentUser.id && !msg.deliveredAt
+        )
+        
+        for (const message of incomingMessages) {
+          try {
+            await messengerApi.markAsDelivered(message.id)
+          } catch (error) {
+            console.error('Failed to mark message as delivered:', error)
+          }
+        }
+      }
+
+      deliverMessages()
+    }
+  }, [selectedConversation, messages, currentUser])
+
+  // Mark messages as read when user scrolls to them
+  useEffect(() => {
+    if (selectedConversation && messages.length > 0 && currentUser) {
+      const markAsRead = async () => {
+        const unreadMessages = messages.filter(
+          msg => msg.senderId !== currentUser.id && !msg.readAt
+        )
+        
+        for (const message of unreadMessages) {
+          try {
+            await messengerApi.markAsRead(message.id)
+          } catch (error) {
+            console.error('Failed to mark message as read:', error)
+          }
+        }
+      }
+
+      // Mark as read after a short delay (simulating user viewing the message)
+      const timer = setTimeout(markAsRead, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [selectedConversation, messages, currentUser])
 
   const handleSendMessage = () => {
     if (inputText.trim() && selectedConversation) {
@@ -206,11 +252,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                        <p className={`text-xs mt-1 ${
-                          isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                        }`}>
-                          {formatTime(message.createdAt)}
-                        </p>
+                        <div className="flex items-center justify-end gap-1">
+                          <p className={`text-xs mt-1 ${
+                            isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                            {formatTime(message.createdAt)}
+                          </p>
+                          <MessageStatus
+                            deliveredAt={message.deliveredAt}
+                            readAt={message.readAt}
+                            isOwn={isOwn}
+                            size="sm"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Search, MessageSquare, ArrowLeft } from 'lucide-react'
 import type { Conversation } from '../utils/api'
+import { MessageStatus } from './MessageStatus'
 
 interface ConversationsListProps {
   conversations: Conversation[]
@@ -181,9 +182,19 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                    {truncateMessage(conversation.lastMessage?.text || '')}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                      {truncateMessage(conversation.lastMessage?.text || '')}
+                    </p>
+                    {conversation.lastMessage && (
+                      <MessageStatus
+                        deliveredAt={conversation.lastMessage.deliveredAt}
+                        readAt={conversation.lastMessage.readAt}
+                        isOwn={false}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
