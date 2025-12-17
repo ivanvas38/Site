@@ -59,18 +59,19 @@ async function fetchApi<T>(
       headers,
     })
 
-    const data = await response.json()
+    const responseBody = await response.json()
 
     if (!response.ok) {
       return {
         success: false,
-        error: data.message || 'Ошибка запроса',
+        error: responseBody.message || 'Ошибка запроса',
       }
     }
 
     return {
       success: true,
-      data,
+      data: responseBody.data || responseBody,
+      message: responseBody.message,
     }
   } catch (error) {
     return {
