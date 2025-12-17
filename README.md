@@ -1,64 +1,28 @@
-# Messenger - Полнофункциональный мессенджер
+# Site
 
-Полнофункциональное веб-приложение мессенджера с использованием современных технологий.
+## Backend - Node.js + Express + MySQL
 
-## Структура проекта
+Этот проект содержит бэкенд на Node.js с Express и подключением к MySQL.
 
-```
-messenger/
-├── backend/          # Node.js + Express API сервер
-├── frontend/         # React + TailwindCSS UI приложение
-├── docs/            # Документация проекта
-├── .gitignore       # Файл для игнорирования версионирования
-└── README.md        # Этот файл
-```
+### Структура проекта:
+- `backend/src/` - исходный код бэкенда
+  - `app.js` - основная конфигурация Express
+  - `config/database.js` - подключение к MySQL
+  - `models/User.js` - модель пользователя
+  - `controllers/authController.js` - логика регистрации и входа
+  - `routes/auth.js` - маршруты аутентификации
+  - `middleware/auth.js` - JWT middleware
 
-## Требования
+### Функциональность:
+- POST /api/auth/register - регистрация пользователей
+- POST /api/auth/login - вход с JWT токеном
+- Хеширование паролей с bcrypt
+- CORS настройки
+- Error handling
 
-- Node.js >= 16.x
-- npm >= 8.x или yarn >= 3.x
-- MySQL >= 8.0
-
-## Быстрый старт
-
-### Backend
-
+### Установка и запуск:
 ```bash
 cd backend
 npm install
-cp .env.example .env
-# Отредактируйте .env с вашими конфигурациями
-npm run dev
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
 npm start
 ```
-
-## Технологический стек
-
-### Backend
-- **Express.js** - веб-фреймворк
-- **JWT** - аутентификация
-- **bcrypt** - хеширование паролей
-- **mysql2** - работа с БД
-- **dotenv** - переменные окружения
-- **cors** - CORS поддержка
-
-### Frontend
-- **React** - UI библиотека
-- **TailwindCSS** - стили
-- **Axios** - HTTP клиент
-- **Lucide Icons** - иконки
-
-## Разработка
-
-Детальная информация по разработке находится в папке `docs/`.
-
-## Лицензия
-
-MIT

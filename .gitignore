@@ -1,3 +1,10 @@
+node_modules/
+*.log
+.DS_Store
+.env
+backend/node_modules/
+backend/dist/
+backend/build/
 # Dependencies
 node_modules/
 /.pnp
