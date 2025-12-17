@@ -60,8 +60,7 @@ const register = [
           user: {
             id: user.id,
             email: user.email,
-            username: user.username,
-            created_at: user.created_at
+            username: user.username
           },
           token
         }
@@ -78,7 +77,7 @@ const register = [
 ];
 
 const login = [
-  body('emailOrUsername').notEmpty().trim(),
+  body('email').optional().isEmail().normalizeEmail(),
   body('password').notEmpty(),
   
   async (req, res) => {
@@ -92,9 +91,16 @@ const login = [
         });
       }
 
-      const { emailOrUsername, password } = req.body;
+      const { email, password } = req.body;
 
-      const user = await User.findByEmailOrUsername(emailOrUsername);
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email обязателен'
+        });
+      }
+
+      const user = await User.findByEmailOrUsername(email);
       if (!user) {
         return res.status(401).json({
           success: false,
@@ -106,7 +112,7 @@ const login = [
       if (!isPasswordValid) {
         return res.status(401).json({
           success: false,
-          message: 'Неверные учетные данные'
+          message: 'Неверный пароль'
         });
       }
 
@@ -123,8 +129,7 @@ const login = [
           user: {
             id: user.id,
             email: user.email,
-            username: user.username,
-            created_at: user.created_at
+            username: user.username
           },
           token
         }
@@ -156,8 +161,7 @@ const getProfile = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          username: user.username,
-          created_at: user.created_at
+          username: user.username
         }
       }
     });
