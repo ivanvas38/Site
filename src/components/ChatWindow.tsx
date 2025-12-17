@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { Send, ArrowLeft } from 'lucide-react'
-import type { Message, Conversation, User } from '../utils/api'
+import type { Message, Conversation, User as UserType } from '../utils/api'
 
 interface ChatWindowProps {
   selectedConversation: Conversation | null
   messages: Message[]
-  currentUser: User | null
+  currentUser: UserType | null
   onSendMessage: (text: string) => void
   onBack?: () => void
   onClose?: () => void
@@ -23,15 +23,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 }) => {
   const [inputText, setInputText] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  // Remove auto scroll as it's now handled by parent component
-  // useEffect(() => {
-  //   scrollToBottom()
-  // }, [messages])
 
   const handleSendMessage = () => {
     if (inputText.trim() && selectedConversation) {
