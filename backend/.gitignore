@@ -42,3 +42,11 @@ yarn-error.log*
 # Misc
 tmp/
 temp/
+
+# Database files (they contain user data and should not be committed)
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# But keep the data directory structure with .gitkeep
+!data/.gitkeep
