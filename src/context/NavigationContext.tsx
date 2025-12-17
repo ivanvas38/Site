@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from 'react'
 
-export type PageType = 'landing' | 'login' | 'register' | 'dashboard'
+export type PageType = 'landing' | 'login' | 'register'
 
 interface NavigationContextType {
   currentPage: PageType

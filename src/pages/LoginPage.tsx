@@ -62,7 +62,7 @@ export const LoginPage: React.FC = () => {
       await login(formData.email, formData.password, formData.rememberMe)
       setSuccess(true)
       setTimeout(() => {
-        navigate('dashboard')
+        navigate('landing')
       }, 2000)
     } catch (err) {
       // Error is handled by AuthContext

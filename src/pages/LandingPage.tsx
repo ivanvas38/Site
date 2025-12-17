@@ -1,11 +1,9 @@
 import React from 'react'
 import { MessageCircle, Zap, Lock, Users, ChevronRight, Play } from 'lucide-react'
 import { useNavigation } from '../context/NavigationContext'
-import { useAuth } from '../context/AuthContext'
 
 export const LandingPage: React.FC = () => {
   const { navigate } = useNavigation()
-  const { isAuthenticated, user } = useAuth()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -19,34 +17,18 @@ export const LandingPage: React.FC = () => {
             </span>
           </div>
           <div className="flex gap-3">
-            {isAuthenticated ? (
-              <>
-                <span className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Привет, {user?.username}!
-                </span>
-                <button
-                  onClick={() => navigate('dashboard')}
-                  className="px-6 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
-                >
-                  Профиль
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => navigate('login')}
-                  className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-                >
-                  Авторизация
-                </button>
-                <button
-                  onClick={() => navigate('register')}
-                  className="px-6 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
-                >
-                  Регистрация
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => navigate('login')}
+              className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+            >
+              Авторизация
+            </button>
+            <button
+              onClick={() => navigate('register')}
+              className="px-6 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
+            >
+              Регистрация
+            </button>
           </div>
         </div>
       </nav>

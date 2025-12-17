@@ -37,14 +37,6 @@ export interface RegisterResponse {
   token: string
 }
 
-export interface GetUserResponse {
-  user: {
-    id: string
-    email: string
-    username: string
-  }
-}
-
 async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -78,7 +70,7 @@ async function fetchApi<T>(
 
     return {
       success: true,
-      data: data.data,
+      data,
     }
   } catch (error) {
     return {
@@ -110,7 +102,7 @@ export const authApi = {
   },
 
   getCurrentUser: async () => {
-    return fetchApi<GetUserResponse>('/auth/me', {
+    return fetchApi('/auth/me', {
       method: 'GET',
     })
   },

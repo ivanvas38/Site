@@ -1,6 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { authApi } from '../utils/api'
+import React, { createContext, useContext, useState, useCallback } from 'react'
 
 export interface User {
   id: string
@@ -17,35 +16,37 @@ export interface AuthContextType {
   register: (email: string, username: string, password: string) => Promise<void>
   logout: () => void
   clearError: () => void
-  restoreSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const login = useCallback(async (email: string, password: string, rememberMe?: boolean) => {
     try {
       setIsLoading(true)
       setError(null)
+      
+      // Имитация API запроса
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, rememberMe }),
+      }).catch(() => {
+        throw new Error('Ошибка подключения к серверу')
+      })
 
-      const response = await authApi.login({ email, password, rememberMe })
-
-      if (!response.success) {
-        throw new Error(response.error || 'Ошибка входа')
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Ошибка входа')
       }
 
-      const { user: userData, token } = response.data || {}
-      if (!userData || !token) {
-        throw new Error('Неверный ответ сервера')
-      }
-
-      localStorage.setItem('token', token)
-      setUser(userData)
-
+      const data = await response.json()
+      setUser(data.user)
+      
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true')
       }
@@ -63,19 +64,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true)
       setError(null)
 
-      const response = await authApi.register({ email, username, password })
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, username, password }),
+      }).catch(() => {
+        throw new Error('Ошибка подключения к серверу')
+      })
 
-      if (!response.success) {
-        throw new Error(response.error || 'Ошибка регистрации')
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Ошибка регистрации')
       }
 
-      const { user: userData, token } = response.data || {}
-      if (!userData || !token) {
-        throw new Error('Неверный ответ сервера')
-      }
-
-      localStorage.setItem('token', token)
-      setUser(userData)
+      const data = await response.json()
+      setUser(data.user)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Неизвестная ошибка'
       setError(message)
@@ -88,39 +91,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(() => {
     setUser(null)
     setError(null)
-    localStorage.removeItem('token')
     localStorage.removeItem('rememberMe')
   }, [])
 
   const clearError = useCallback(() => {
     setError(null)
   }, [])
-
-  const restoreSession = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        setIsLoading(false)
-        return
-      }
-
-      const response = await authApi.getCurrentUser()
-      if (response.success && response.data?.user) {
-        setUser(response.data.user)
-      } else {
-        localStorage.removeItem('token')
-      }
-    } catch (err) {
-      console.error('Failed to restore session:', err)
-      localStorage.removeItem('token')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    restoreSession()
-  }, [restoreSession])
 
   const value: AuthContextType = {
     user,
@@ -131,7 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     clearError,
-    restoreSession,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
