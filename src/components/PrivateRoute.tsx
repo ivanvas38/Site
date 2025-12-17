@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigation } from '../context/NavigationContext'
 
@@ -9,6 +9,12 @@ interface PrivateRouteProps {
 export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth()
   const { navigate } = useNavigation()
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('login')
+    }
+  }, [isAuthenticated, isLoading, navigate])
 
   if (isLoading) {
     return (
@@ -22,7 +28,6 @@ export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    navigate('login')
     return null
   }
 
