@@ -109,6 +109,39 @@ export const authApi = {
   },
 }
 
+export interface User {
+  id: string
+  email: string
+  username: string
+}
+
+export interface Message {
+  id: string
+  text: string
+  senderId: string
+  senderUsername: string
+  createdAt: string
+}
+
+export interface Conversation {
+  id: string
+  otherUser: User
+  lastMessage: {
+    text: string
+    createdAt: string
+  } | null
+  updatedAt: string
+}
+
+export interface SendMessageResponse {
+  message: Message
+  conversation: {
+    id: string
+    user1Id: string
+    user2Id: string
+  }
+}
+
 export const api = {
   get: <T,>(endpoint: string) =>
     fetchApi<T>(endpoint, { method: 'GET' }),
@@ -127,4 +160,29 @@ export const api = {
   
   delete: <T,>(endpoint: string) =>
     fetchApi<T>(endpoint, { method: 'DELETE' }),
+}
+
+export const messengerApi = {
+  // Получить всех пользователей
+  getAllUsers: async () => {
+    return fetchApi<User[]>('/users', { method: 'GET' })
+  },
+  
+  // Получить диалоги текущего пользователя
+  getConversations: async () => {
+    return fetchApi<Conversation[]>('/conversations', { method: 'GET' })
+  },
+  
+  // Получить сообщения диалога
+  getConversationMessages: async (conversationId: string) => {
+    return fetchApi<Message[]>(`/conversations/${conversationId}/messages`, { method: 'GET' })
+  },
+  
+  // Отправить сообщение
+  sendMessage: async (conversationId: string | undefined, recipientId: string | undefined, text: string) => {
+    return fetchApi<SendMessageResponse>('/messages/send', {
+      method: 'POST',
+      body: JSON.stringify({ conversationId, recipientId, text })
+    })
+  }
 }

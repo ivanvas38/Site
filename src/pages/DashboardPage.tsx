@@ -1,74 +1,259 @@
-import React from 'react'
-import { LogOut, User, Mail, Calendar } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { ConversationsList } from '../components/ConversationsList'
+import { ChatWindow } from '../components/ChatWindow'
+import { UsersList } from '../components/UsersList'
+import { messengerApi, type Conversation, type Message, type User } from '../utils/api'
 
 export const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth()
+
+  // State management
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showUsersList, setShowUsersList] = useState(false)
+  const [mobileView, setMobileView] = useState<'conversations' | 'chat'>('conversations')
+  const [loading, setLoading] = useState({
+    conversations: false,
+    messages: false,
+    users: false,
+  })
+
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations()
+  }, [])
+
+  // Load messages when conversation is selected
+  useEffect(() => {
+    if (selectedConversation) {
+      loadMessages(selectedConversation.id)
+    }
+  }, [selectedConversation])
+
+  const loadConversations = async () => {
+    setLoading(prev => ({ ...prev, conversations: true }))
+    try {
+      const result = await messengerApi.getConversations()
+      if (result.success && result.data) {
+        setConversations(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to load conversations:', error)
+    } finally {
+      setLoading(prev => ({ ...prev, conversations: false }))
+    }
+  }
+
+  const loadMessages = async (conversationId: string) => {
+    setLoading(prev => ({ ...prev, messages: true }))
+    try {
+      const result = await messengerApi.getConversationMessages(conversationId)
+      if (result.success && result.data) {
+        setMessages(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to load messages:', error)
+    } finally {
+      setLoading(prev => ({ ...prev, messages: false }))
+    }
+  }
+
+  const loadUsers = async () => {
+    setLoading(prev => ({ ...prev, users: true }))
+    try {
+      const result = await messengerApi.getAllUsers()
+      if (result.success && result.data) {
+        setUsers(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error)
+    } finally {
+      setLoading(prev => ({ ...prev, users: false }))
+    }
+  }
+
+  const handleSendMessage = async (text: string) => {
+    if (!selectedConversation) return
+
+    try {
+      const result = await messengerApi.sendMessage(selectedConversation.id, undefined, text)
+      if (result.success && result.data) {
+        // The backend returns { message: {...}, conversation: {...} }
+        const newMessage = result.data.message
+        if (newMessage) {
+          setMessages(prev => [...prev, newMessage])
+          // Refresh conversations to update last message
+          loadConversations()
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error)
+    }
+  }
+
+  const handleNewDialog = async () => {
+    await loadUsers()
+    setShowUsersList(true)
+  }
+
+  const handleSelectUser = async (userId: string) => {
+    setShowUsersList(false)
+    
+    // Check if conversation already exists
+    const existingConversation = conversations.find(conv => 
+      conv.otherUser.id === userId
+    )
+
+    if (existingConversation) {
+      setSelectedConversation(existingConversation)
+      if (window.innerWidth < 1024) {
+        setMobileView('chat')
+      }
+    } else {
+      // For new conversation, we need to send an initial message
+      // Use a placeholder message that can be edited later
+      try {
+        const initialMessage = 'Привет! Это первое сообщение в нашем диалоге. Напишите ответ!'
+        const result = await messengerApi.sendMessage(undefined, userId, initialMessage)
+        if (result.success && result.data) {
+          // Reload conversations to get the new one
+          await loadConversations()
+          // Find the new conversation
+          const newConversation = conversations.find(conv => 
+            conv.otherUser.id === userId
+          )
+          if (newConversation) {
+            setSelectedConversation(newConversation)
+            // Load messages for the new conversation
+            await loadMessages(newConversation.id)
+            if (window.innerWidth < 1024) {
+              setMobileView('chat')
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to start conversation:', error)
+      }
+    }
+  }
+
+  const handleSelectConversation = (conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId)
+    if (conversation) {
+      setSelectedConversation(conversation)
+      if (window.innerWidth < 1024) {
+        setMobileView('chat')
+      }
+    }
+  }
 
   const handleLogout = () => {
     logout()
   }
 
+  // Filter conversations based on search term
+  const filteredConversations = conversations.filter(conversation =>
+    conversation.otherUser.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (conversation.lastMessage?.text && 
+     conversation.lastMessage.text.toLowerCase().includes(searchTerm.toLowerCase()))
+  )
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8 animate-slideUp">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
-              <User className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">TeleApp</span>
+    <div className="h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
+            <span className="text-white font-semibold text-sm">
+              {user?.username?.charAt(0).toUpperCase()}
+            </span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Профиль
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Информация вашего аккаунта
-          </p>
+          <div>
+            <h1 className="font-semibold text-gray-900 dark:text-white">
+              {user?.username}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {user?.email}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-slate-700 animate-slideUp">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center flex-shrink-0">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Имя пользователя</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">{user?.username}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-700">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-400 rounded-full flex items-center justify-center flex-shrink-0">
-                <Mail className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white break-all">{user?.email}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-700">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-400 rounded-full flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">ID пользователя</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white font-mono text-sm break-all">{user?.id}</p>
-              </div>
-            </div>
-          </div>
-
+        <div className="flex items-center gap-2">
           <button
             onClick={handleLogout}
-            className="w-full mt-8 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-lg hover:scale-105"
+            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title="Выход"
           >
             <LogOut className="w-5 h-5" />
-            Выход из аккаунта
           </button>
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop Layout */}
+        <div className="hidden lg:flex w-full">
+          <ConversationsList
+            conversations={filteredConversations}
+            selectedId={selectedConversation?.id || null}
+            onSelect={handleSelectConversation}
+            onNewDialog={handleNewDialog}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            loading={loading.conversations}
+          />
+
+          <ChatWindow
+            selectedConversation={selectedConversation}
+            messages={messages}
+            currentUser={user}
+            onSendMessage={handleSendMessage}
+            loading={loading.messages}
+          />
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="lg:hidden w-full">
+          {mobileView === 'conversations' && (
+            <ConversationsList
+              conversations={filteredConversations}
+              selectedId={selectedConversation?.id || null}
+              onSelect={handleSelectConversation}
+              onNewDialog={handleNewDialog}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              loading={loading.conversations}
+              onBack={() => setMobileView('chat')}
+            />
+          )}
+
+          {mobileView === 'chat' && (
+            <ChatWindow
+              selectedConversation={selectedConversation}
+              messages={messages}
+              currentUser={user}
+              onSendMessage={handleSendMessage}
+              loading={loading.messages}
+              onBack={() => setMobileView('conversations')}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Users List Modal */}
+      {showUsersList && (
+        <UsersList
+          users={users}
+          onSelectUser={handleSelectUser}
+          onClose={() => setShowUsersList(false)}
+          loading={loading.users}
+        />
+      )}
     </div>
   )
 }
