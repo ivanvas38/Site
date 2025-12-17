@@ -63,6 +63,8 @@ const createTables = async () => {
         conversation_id INTEGER NOT NULL,
         sender_id INTEGER NOT NULL,
         text TEXT NOT NULL,
+        delivered_at DATETIME DEFAULT NULL,
+        read_at DATETIME DEFAULT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(conversation_id) REFERENCES conversations(id),
         FOREIGN KEY(sender_id) REFERENCES users(id)
@@ -95,6 +97,28 @@ const createTables = async () => {
       });
     });
     console.log('Таблица messages создана или уже существует');
+
+    // Add missing columns to existing messages table
+    await new Promise((resolve, reject) => {
+      db.run(`ALTER TABLE messages ADD COLUMN delivered_at DATETIME DEFAULT NULL`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    await new Promise((resolve, reject) => {
+      db.run(`ALTER TABLE messages ADD COLUMN read_at DATETIME DEFAULT NULL`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    console.log('Колонки delivered_at и read_at добавлены в таблицу messages');
 
     // Create unique constraint index for conversations
     await new Promise((resolve, reject) => {

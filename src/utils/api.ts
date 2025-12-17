@@ -120,6 +120,8 @@ export interface Message {
   text: string
   senderId: string
   senderUsername: string
+  deliveredAt: string | null
+  readAt: string | null
   createdAt: string
 }
 
@@ -128,6 +130,8 @@ export interface Conversation {
   otherUser: User
   lastMessage: {
     text: string
+    deliveredAt: string | null
+    readAt: string | null
     createdAt: string
   } | null
   updatedAt: string
@@ -183,6 +187,20 @@ export const messengerApi = {
     return fetchApi<SendMessageResponse>('/messages/send', {
       method: 'POST',
       body: JSON.stringify({ conversationId, recipientId, text })
+    })
+  },
+
+  // Отметить сообщение как доставленное
+  markAsDelivered: async (messageId: string) => {
+    return fetchApi<{ message: string }>(`/messages/${messageId}/deliver`, {
+      method: 'PATCH'
+    })
+  },
+
+  // Отметить сообщение как прочитанное
+  markAsRead: async (messageId: string) => {
+    return fetchApi<{ message: string }>(`/messages/${messageId}/read`, {
+      method: 'PATCH'
     })
   }
 }

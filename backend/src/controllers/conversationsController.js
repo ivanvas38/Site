@@ -27,6 +27,8 @@ export const getConversations = async (req, res) => {
           },
           lastMessage: lastMessage ? {
             text: lastMessage.text,
+            deliveredAt: lastMessage.delivered_at,
+            readAt: lastMessage.read_at,
             createdAt: lastMessage.created_at
           } : null,
           updatedAt: conv.updated_at
@@ -80,6 +82,8 @@ export const getConversationMessages = async (req, res) => {
       senderId: msg.sender_id,
       senderUsername: msg.sender_username,
       text: msg.text,
+      deliveredAt: msg.delivered_at,
+      readAt: msg.read_at,
       createdAt: msg.created_at
     }));
     

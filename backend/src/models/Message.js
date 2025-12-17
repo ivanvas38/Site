@@ -40,6 +40,44 @@ class Message {
     }
   }
 
+  static async markAsDelivered(messageId) {
+    try {
+      await executeQuery(
+        'UPDATE messages SET delivered_at = CURRENT_TIMESTAMP WHERE id = ? AND delivered_at IS NULL',
+        [messageId]
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async markAsRead(messageId) {
+    try {
+      await executeQuery(
+        'UPDATE messages SET read_at = CURRENT_TIMESTAMP WHERE id = ? AND read_at IS NULL',
+        [messageId]
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getById(messageId) {
+    try {
+      const [rows] = await executeQuery(
+        `SELECT m.*, u.username as sender_username 
+         FROM messages m
+         JOIN users u ON m.sender_id = u.id
+         WHERE m.id = ?`,
+        [messageId]
+      );
+      
+      return rows[0] || null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async deleteById(id) {
     try {
       await executeQuery(
