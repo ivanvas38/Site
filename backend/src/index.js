@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
+import usersRoutes from './routes/users.js';
+import conversationsRoutes from './routes/conversations.js';
+import messagesRoutes from './routes/messages.js';
 import { createTables } from './config/database.js';
 
 dotenv.config();
@@ -41,9 +44,9 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/messages', messageRoutes);
-// app.use('/api/conversations', conversationRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/messages', messagesRoutes);
+app.use('/api/conversations', conversationsRoutes);
 
 // Error handler middleware
 app.use((err, req, res, next) => {

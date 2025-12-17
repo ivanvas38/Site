@@ -45,6 +45,31 @@ const createTables = async () => {
       )
     `;
 
+    const createConversationsTable = `
+      CREATE TABLE IF NOT EXISTS conversations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user1_id INTEGER NOT NULL,
+        user2_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user1_id) REFERENCES users(id),
+        FOREIGN KEY(user2_id) REFERENCES users(id)
+      )
+    `;
+
+    const createMessagesTable = `
+      CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conversation_id INTEGER NOT NULL,
+        sender_id INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(conversation_id) REFERENCES conversations(id),
+        FOREIGN KEY(sender_id) REFERENCES users(id)
+      )
+    `;
+
+    // Create users table
     await new Promise((resolve, reject) => {
       db.run(createUsersTable, (err) => {
         if (err) reject(err);
@@ -52,6 +77,36 @@ const createTables = async () => {
       });
     });
     console.log('Таблица users создана или уже существует');
+
+    // Create conversations table
+    await new Promise((resolve, reject) => {
+      db.run(createConversationsTable, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    console.log('Таблица conversations создана или уже существует');
+
+    // Create messages table
+    await new Promise((resolve, reject) => {
+      db.run(createMessagesTable, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    console.log('Таблица messages создана или уже существует');
+
+    // Create unique constraint index for conversations
+    await new Promise((resolve, reject) => {
+      db.run(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_conversations_users 
+        ON conversations(user1_id, user2_id)
+      `, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    console.log('Индекс для conversations создан или уже существует');
   } catch (error) {
     console.error('Ошибка при создании таблиц:', error.message);
   }
