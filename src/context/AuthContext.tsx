@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { authApi } from '../utils/api'
+import { useNavigation } from './NavigationContext'
 
 export interface User {
   id: string
@@ -22,6 +23,8 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { navigate } = useNavigation()
+
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -68,7 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       localStorage.setItem('token', result.data.token)
       setUser(result.data.user)
-      
+      navigate('dashboard')
+
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true')
       }
@@ -79,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [navigate])
 
   const register = useCallback(async (email: string, username: string, password: string) => {
     try {
@@ -94,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       localStorage.setItem('token', result.data.token)
       setUser(result.data.user)
+      navigate('dashboard')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Неизвестная ошибка'
       setError(message)
@@ -101,18 +106,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [navigate])
 
   const logout = useCallback(() => {
     setUser(null)
     setError(null)
     localStorage.removeItem('token')
     localStorage.removeItem('rememberMe')
-    
+    navigate('landing')
+
     authApi.logout().catch(() => {
       // Ignore logout errors
     })
-  }, [])
+  }, [navigate])
 
   const clearError = useCallback(() => {
     setError(null)

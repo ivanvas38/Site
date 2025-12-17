@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { useNavigation } from '../context/NavigationContext'
 import { useAuth } from '../context/AuthContext'
 
@@ -20,7 +20,6 @@ export const LoginPage: React.FC = () => {
   
   const [errors, setErrors] = useState<FormErrors>({})
   const [showPassword, setShowPassword] = useState(false)
-  const [success, setSuccess] = useState(false)
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -60,10 +59,6 @@ export const LoginPage: React.FC = () => {
 
     try {
       await login(formData.email, formData.password, formData.rememberMe)
-      setSuccess(true)
-      setTimeout(() => {
-        navigate('landing')
-      }, 2000)
     } catch (err) {
       // Error is handled by AuthContext
       console.error('Login failed:', err)
@@ -91,15 +86,6 @@ export const LoginPage: React.FC = () => {
 
         {/* Form Container */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-slate-700 animate-slideUp">
-          {success && (
-            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <p className="text-sm text-green-700 dark:text-green-300">
-                Успешный вход! Перенаправление...
-              </p>
-            </div>
-          )}
-
           {authError && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
@@ -204,9 +190,9 @@ export const LoginPage: React.FC = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading || success}
+              disabled={isLoading}
               className={`w-full py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-                isLoading || success
+                isLoading
                   ? 'bg-gray-400 text-white cursor-not-allowed'
                   : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:shadow-lg hover:scale-105'
               }`}
@@ -215,11 +201,6 @@ export const LoginPage: React.FC = () => {
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   Вход...
-                </>
-              ) : success ? (
-                <>
-                  <CheckCircle className="w-5 h-5" />
-                  Успешно!
                 </>
               ) : (
                 'Войти'

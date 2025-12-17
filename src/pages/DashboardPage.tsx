@@ -1,15 +1,12 @@
 import React from 'react'
 import { LogOut, User, Mail, Calendar } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigation } from '../context/NavigationContext'
 
 export const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth()
-  const { navigate } = useNavigation()
 
   const handleLogout = () => {
     logout()
-    navigate('landing')
   }
 
   return (
@@ -69,13 +66,6 @@ export const DashboardPage: React.FC = () => {
           >
             <LogOut className="w-5 h-5" />
             Выход из аккаунта
-          </button>
-
-          <button
-            onClick={() => navigate('landing')}
-            className="w-full mt-3 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600"
-          >
-            На главную
           </button>
         </div>
       </div>
