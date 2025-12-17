@@ -43,7 +43,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // API /auth/me возвращает { success: true, data: { user: {...} } }
         // Или { success: true, data: {...} }
         const responseData = response.data as { user?: User } | User
-        const userData = 'user' in responseData ? responseData.user : responseData
+        let userData: User | null = null
+
+        if ('user' in responseData && responseData.user) {
+          userData = responseData.user
+        } else if ('id' in responseData) {
+          userData = responseData as User
+        }
+
         setUser(userData)
       } else {
         // Если ответ неуспешный, очищаем токен
