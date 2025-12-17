@@ -4,6 +4,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Environment variables
 # Runtime data
 pids
 *.pid
@@ -81,6 +82,28 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Build outputs
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# PM2
+.pm2/
 
 # parcel-bundler cache
 .cache
@@ -173,6 +196,19 @@ yarn-error.log*
 ehthumbs.db
 Thumbs.db
 
+# Uploads
+uploads/
+user-uploads/
+
+# Database
+*.sqlite
+*.sqlite3
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt
 # Local Netlify folder
 .netlify
 
@@ -225,6 +261,7 @@ Thumbs.db
 
 # Temporary files
 tmp/
+temp/
 temp/
 
 # Build artifacts
