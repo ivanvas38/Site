@@ -8,6 +8,7 @@ interface ChatWindowProps {
   currentUser: User | null
   onSendMessage: (text: string) => void
   onBack?: () => void
+  onClose?: () => void
   loading?: boolean
 }
 
@@ -17,6 +18,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   currentUser,
   onSendMessage,
   onBack,
+  onClose,
   loading = false,
 }) => {
   const [inputText, setInputText] = useState('')
@@ -122,6 +124,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             <button
               onClick={onBack}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
+              title="Назад к списку диалогов"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
@@ -133,7 +136,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             </span>
           </div>
           
-          <div>
+          <div className="flex-1">
             <h2 className="font-semibold text-gray-900 dark:text-white">
               {selectedConversation.otherUser.username}
             </h2>
@@ -141,6 +144,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               {selectedConversation.otherUser.email}
             </p>
           </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Закрыть чат"
+            >
+              <span className="text-gray-600 dark:text-gray-400 text-lg">✕</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -35,6 +35,21 @@ export const DashboardPage: React.FC = () => {
     }
   }, [selectedConversation])
 
+  // Real-time polling for new messages and conversation updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Always refresh conversations list
+      loadConversations()
+      
+      // If a conversation is selected, refresh its messages
+      if (selectedConversation) {
+        loadMessages(selectedConversation.id)
+      }
+    }, 3000) // Every 3 seconds
+
+    return () => clearInterval(interval)
+  }, [selectedConversation])
+
   const loadConversations = async () => {
     setLoading(prev => ({ ...prev, conversations: true }))
     try {
@@ -152,6 +167,10 @@ export const DashboardPage: React.FC = () => {
     }
   }
 
+  const handleCloseChat = () => {
+    setSelectedConversation(null)
+  }
+
   const handleLogout = () => {
     logout()
   }
@@ -213,6 +232,7 @@ export const DashboardPage: React.FC = () => {
             messages={messages}
             currentUser={user}
             onSendMessage={handleSendMessage}
+            onClose={handleCloseChat}
             loading={loading.messages}
           />
         </div>
