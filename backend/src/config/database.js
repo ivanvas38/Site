@@ -38,7 +38,7 @@ const createTables = async () => {
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE NOT NULL,
-        name TEXT NOT NULL,
+        username TEXT NOT NULL,
         password_hash TEXT NOT NULL,
         avatar TEXT DEFAULT NULL,
         last_seen_at DATETIME DEFAULT NULL,
@@ -83,6 +83,43 @@ const createTables = async () => {
       });
     });
     console.log('Таблица users создана или уже существует');
+
+    // Ensure users.username exists (migration from legacy users.name)
+    const usersColumns = await new Promise((resolve, reject) => {
+      db.all('PRAGMA table_info(users)', (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+
+    const hasUsername = usersColumns.some((col) => col.name === 'username');
+    const hasName = usersColumns.some((col) => col.name === 'name');
+
+    if (!hasUsername) {
+      await new Promise((resolve, reject) => {
+        db.run('ALTER TABLE users ADD COLUMN username TEXT', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      if (hasName) {
+        await new Promise((resolve, reject) => {
+          db.run(
+            "UPDATE users SET username = name WHERE username IS NULL OR username = ''",
+            (err) => {
+              if (err) reject(err);
+              else resolve();
+            }
+          );
+        });
+      }
+
+      console.log('Колонка username добавлена/обновлена в таблице users');
+    }
 
     // Create conversations table
     await new Promise((resolve, reject) => {
