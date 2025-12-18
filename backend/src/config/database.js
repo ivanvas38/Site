@@ -69,6 +69,9 @@ const createTables = async () => {
         text TEXT NOT NULL,
         delivered_at DATETIME DEFAULT NULL,
         read_at DATETIME DEFAULT NULL,
+        is_edited INTEGER DEFAULT 0,
+        is_deleted INTEGER DEFAULT 0,
+        edited_at DATETIME DEFAULT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(conversation_id) REFERENCES conversations(id),
         FOREIGN KEY(sender_id) REFERENCES users(id)
@@ -139,9 +142,9 @@ const createTables = async () => {
     });
     console.log('Таблица messages создана или уже существует');
 
-    // Add missing columns to existing messages table
+    // Add missing columns to existing messages table (for backwards compatibility)
     await new Promise((resolve, reject) => {
-      db.run(`ALTER TABLE messages ADD COLUMN delivered_at DATETIME DEFAULT NULL`, (err) => {
+      db.run(`ALTER TABLE messages ADD COLUMN is_edited INTEGER DEFAULT 0`, (err) => {
         if (err && !err.message.includes('duplicate column name')) {
           reject(err);
         } else {
@@ -151,7 +154,7 @@ const createTables = async () => {
     });
 
     await new Promise((resolve, reject) => {
-      db.run(`ALTER TABLE messages ADD COLUMN read_at DATETIME DEFAULT NULL`, (err) => {
+      db.run(`ALTER TABLE messages ADD COLUMN is_deleted INTEGER DEFAULT 0`, (err) => {
         if (err && !err.message.includes('duplicate column name')) {
           reject(err);
         } else {
@@ -159,7 +162,17 @@ const createTables = async () => {
         }
       });
     });
-    console.log('Колонки delivered_at и read_at добавлены в таблицу messages');
+
+    await new Promise((resolve, reject) => {
+      db.run(`ALTER TABLE messages ADD COLUMN edited_at DATETIME DEFAULT NULL`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    console.log('Колонки is_edited, is_deleted и edited_at добавлены в таблицу messages');
 
     // Add avatar column to users table
     await new Promise((resolve, reject) => {
