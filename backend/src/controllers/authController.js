@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 const register = async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, name, password, timezone } = req.body;
 
     // Basic validation
     if (!email || !name || !password) {
@@ -52,7 +52,8 @@ const register = async (req, res) => {
     const user = await User.create({
       email,
       name,
-      passwordHash
+      passwordHash,
+      timezone: timezone || 'UTC'
     });
 
     const token = jwt.sign(
@@ -71,7 +72,8 @@ const register = async (req, res) => {
           name: user.name,
           avatar: user.avatar,
           lastSeenAt: user.last_seen_at,
-          isOnline: user.is_online
+          isOnline: user.is_online,
+          timezone: user.timezone
         },
         token
       }
@@ -132,7 +134,8 @@ const login = async (req, res) => {
           name: user.name,
           avatar: user.avatar,
           lastSeenAt: user.last_seen_at,
-          isOnline: user.is_online
+          isOnline: user.is_online,
+          timezone: user.timezone
         },
         token
       }
@@ -167,6 +170,7 @@ const getProfile = async (req, res) => {
           avatar: user.avatar,
           lastSeenAt: user.last_seen_at,
           isOnline: user.is_online,
+          timezone: user.timezone,
           createdAt: user.created_at,
           updatedAt: user.updated_at
         }

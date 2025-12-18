@@ -3,6 +3,7 @@ import { Search, MessageSquare, ArrowLeft } from 'lucide-react'
 import type { Conversation } from '../utils/api'
 import { MessageStatus } from './MessageStatus'
 import UserAvatar from './UserAvatar'
+import { formatCompactTimeInTimezone } from '../utils/timezone'
 
 interface ConversationsListProps {
   conversations: Conversation[]
@@ -13,6 +14,7 @@ interface ConversationsListProps {
   onSearchChange: (term: string) => void
   loading?: boolean
   onBack?: () => void
+  userTimezone?: string
 }
 
 export const ConversationsList: React.FC<ConversationsListProps> = ({
@@ -24,28 +26,10 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
   onSearchChange,
   loading = false,
   onBack,
+  userTimezone = 'UTC',
 }) => {
   const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-    if (days === 0) {
-      return date.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
-    } else if (days === 1) {
-      return 'Вчера'
-    } else if (days < 7) {
-      return date.toLocaleDateString('ru-RU', { weekday: 'short' })
-    } else {
-      return date.toLocaleDateString('ru-RU', { 
-        day: '2-digit', 
-        month: '2-digit' 
-      })
-    }
+    return formatCompactTimeInTimezone(timestamp, userTimezone)
   }
 
   const truncateMessage = (text: string, maxLength: number = 50) => {

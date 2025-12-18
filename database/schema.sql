@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     avatar VARCHAR(500),
     last_seen_at TIMESTAMP NULL,
     is_online BOOLEAN DEFAULT FALSE,
+    timezone VARCHAR(100) DEFAULT 'UTC',
     phone VARCHAR(20),
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
@@ -28,7 +29,8 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_verified (is_verified),
     INDEX idx_created_at (created_at),
     INDEX idx_last_seen_at (last_seen_at),
-    INDEX idx_is_online (is_online)
+    INDEX idx_is_online (is_online),
+    INDEX idx_timezone (timezone)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Таблица ролей пользователей

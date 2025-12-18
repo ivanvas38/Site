@@ -15,7 +15,8 @@ export const getAll = async (req, res) => {
       name: user.name,
       avatar: user.avatar,
       lastSeenAt: user.last_seen_at,
-      isOnline: user.is_online
+      isOnline: user.is_online,
+      timezone: user.timezone
     }));
     
     res.json({
@@ -51,6 +52,7 @@ export const getById = async (req, res) => {
       avatar: user.avatar,
       lastSeenAt: user.last_seen_at,
       isOnline: user.is_online,
+      timezone: user.timezone,
       createdAt: user.created_at,
       updatedAt: user.updated_at
     };
@@ -71,16 +73,16 @@ export const getById = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const currentUserId = req.userId;
-    const { name, avatar } = req.body;
+    const { name, avatar, timezone } = req.body;
     
-    if (!name && !avatar) {
+    if (!name && !avatar && !timezone) {
       return res.status(400).json({
         success: false,
-        message: 'Необходимо указать имя или аватар для обновления'
+        message: 'Необходимо указать имя, аватар или часовой пояс для обновления'
       });
     }
     
-    const updatedUser = await User.updateProfile(currentUserId, { name, avatar });
+    const updatedUser = await User.updateProfile(currentUserId, { name, avatar, timezone });
     
     // Remove password_hash from response
     const sanitizedUser = {
@@ -90,6 +92,7 @@ export const updateProfile = async (req, res) => {
       avatar: updatedUser.avatar,
       lastSeenAt: updatedUser.last_seen_at,
       isOnline: updatedUser.is_online,
+      timezone: updatedUser.timezone,
       createdAt: updatedUser.created_at,
       updatedAt: updatedUser.updated_at
     };
@@ -130,6 +133,7 @@ export const updateAvatar = async (req, res) => {
       avatar: updatedUser.avatar,
       lastSeenAt: updatedUser.last_seen_at,
       isOnline: updatedUser.is_online,
+      timezone: updatedUser.timezone,
       createdAt: updatedUser.created_at,
       updatedAt: updatedUser.updated_at
     };
@@ -162,6 +166,7 @@ export const updateActivity = async (req, res) => {
       avatar: updatedUser.avatar,
       lastSeenAt: updatedUser.last_seen_at,
       isOnline: updatedUser.is_online,
+      timezone: updatedUser.timezone,
       createdAt: updatedUser.created_at,
       updatedAt: updatedUser.updated_at
     };
@@ -191,7 +196,8 @@ export const getOnlineUsers = async (req, res) => {
       name: user.name,
       avatar: user.avatar,
       lastSeenAt: user.last_seen_at,
-      isOnline: user.is_online
+      isOnline: user.is_online,
+      timezone: user.timezone
     }));
     
     res.json({
