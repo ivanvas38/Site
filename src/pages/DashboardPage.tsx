@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User as UserIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigation } from '../context/NavigationContext'
 import { ConversationsList } from '../components/ConversationsList'
@@ -304,7 +304,7 @@ export const DashboardPage: React.FC = () => {
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
             title="Перейти к профилю"
           >
-            <User className="w-4 h-4" />
+            <UserIcon className="w-4 h-4" />
             Профиль
           </button>
           <button
