@@ -78,9 +78,9 @@ export const getConversationMessages = async (req, res) => {
       });
     }
     
-    // Get messages
+    // Get messages (only active messages, not deleted)
     const Message = (await import('../models/Message.js')).default;
-    const messages = await Message.getByConversationId(conversationId);
+    const messages = await Message.getActiveMessagesByConversationId(conversationId);
     
     // Format messages
     const formattedMessages = messages.map(msg => ({
