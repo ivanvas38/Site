@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '../context/NavigationContext';
 import { messengerApi } from '../utils/api';
 import UserAvatar from './UserAvatar';
 
@@ -104,6 +106,7 @@ const AvatarCropper: React.FC<AvatarCropperProps> = ({ imageSrc, onCropComplete,
 
 export const ProfilePage: React.FC = () => {
   const { user, updateUser } = useAuth();
+  const { navigate } = useNavigation();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [isLoading, setIsLoading] = useState(false);
@@ -214,7 +217,16 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-6">Профиль пользователя</h2>
+        <div className="flex items-center gap-4 mb-6">
+          <button 
+            onClick={() => navigate('dashboard')}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            title="Назад к диалогам"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h2 className="text-2xl font-bold">Профиль пользователя</h2>
+        </div>
         
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">

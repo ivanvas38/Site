@@ -301,19 +301,19 @@ export const DashboardPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('profile')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+            className="p-2 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
             title="Перейти к профилю"
           >
             <UserIcon className="w-4 h-4" />
-            Профиль
+            <span className="hidden md:inline">Профиль</span>
           </button>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+            className="p-2 md:px-4 md:py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
             title="Выйти из аккаунта"
           >
             <LogOut className="w-4 h-4" />
-            Выход
+            <span className="hidden md:inline">Выход</span>
           </button>
         </div>
       </div>
