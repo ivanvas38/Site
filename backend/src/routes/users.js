@@ -14,6 +14,9 @@ const router = express.Router();
 // GET /api/users - Get all users except current user
 router.get('/', authenticateToken, getAll);
 
+// GET /api/users/online - Get online users
+router.get('/online', authenticateToken, getOnlineUsers);
+
 // GET /api/users/:id - Get user by ID
 router.get('/:id', authenticateToken, getById);
 
@@ -25,8 +28,5 @@ router.post('/profile/avatar', authenticateToken, updateAvatar);
 
 // POST /api/users/activity - Update user activity (last seen)
 router.post('/activity', authenticateToken, updateActivity);
-
-// GET /api/users/online - Get online users
-router.get('/online', authenticateToken, getOnlineUsers);
 
 export default router;

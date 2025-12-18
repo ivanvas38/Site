@@ -130,15 +130,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [navigate])
 
   const logout = useCallback(() => {
-    setUser(null)
     setError(null)
-    localStorage.removeItem('token')
-    localStorage.removeItem('rememberMe')
-    navigate('landing')
 
     authApi.logout().catch(() => {
       // Ignore logout errors
     })
+
+    setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('rememberMe')
+    navigate('landing')
   }, [navigate])
 
   const clearError = useCallback(() => {

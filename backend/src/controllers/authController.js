@@ -116,7 +116,7 @@ const login = async (req, res) => {
     }
 
     // Update last seen and online status on login
-    await User.updateLastSeen(user.id);
+    const updatedUser = await User.updateLastSeen(user.id);
 
     const token = jwt.sign(
       { userId: user.id, email: user.email },
@@ -129,13 +129,13 @@ const login = async (req, res) => {
       message: 'Успешный вход',
       data: {
         user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          avatar: user.avatar,
-          lastSeenAt: user.last_seen_at,
-          isOnline: user.is_online,
-          timezone: user.timezone
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          avatar: updatedUser.avatar,
+          lastSeenAt: updatedUser.last_seen_at,
+          isOnline: updatedUser.is_online,
+          timezone: updatedUser.timezone
         },
         token
       }
@@ -143,6 +143,23 @@ const login = async (req, res) => {
 
   } catch (error) {
     console.error('Ошибка входа:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Внутренняя ошибка сервера'
+    });
+  }
+};
+
+const logout = async (req, res) => {
+  try {
+    await User.setOffline(req.userId);
+
+    res.json({
+      success: true,
+      message: 'Успешный выход'
+    });
+  } catch (error) {
+    console.error('Ошибка logout:', error);
     res.status(500).json({
       success: false,
       message: 'Внутренняя ошибка сервера'
@@ -219,6 +236,7 @@ const validateToken = async (req, res) => {
 export {
   register,
   login,
+  logout,
   getProfile,
   validateToken
 };
