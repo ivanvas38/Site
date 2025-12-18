@@ -161,6 +161,42 @@ const createTables = async () => {
     });
     console.log('Колонки delivered_at и read_at добавлены в таблицу messages');
 
+    // Add avatar column to users table
+    await new Promise((resolve, reject) => {
+      db.run(`ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    console.log('Колонка avatar добавлена в таблицу users');
+
+    // Add last_seen_at column to users table
+    await new Promise((resolve, reject) => {
+      db.run(`ALTER TABLE users ADD COLUMN last_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    console.log('Колонка last_seen_at добавлена в таблицу users');
+
+    // Add is_online column to users table
+    await new Promise((resolve, reject) => {
+      db.run(`ALTER TABLE users ADD COLUMN is_online BOOLEAN DEFAULT 0`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    console.log('Колонка is_online добавлена в таблицу users');
+
     // Add timezone column to users table
     await new Promise((resolve, reject) => {
       db.run(`ALTER TABLE users ADD COLUMN timezone TEXT DEFAULT 'UTC'`, (err) => {
