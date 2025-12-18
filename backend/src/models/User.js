@@ -36,47 +36,95 @@ class User {
   }
 
   static async findById(id) {
+    // First update the online status to ensure it's current
+    await this.updateOnlineStatus(id);
+    
     const [rows] = await executeQuery(
-      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE id = ?",
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE id = ?",
       [id]
     );
 
-    return this.#normalizeUser(rows[0]);
+    const user = rows[0];
+    if (!user) return null;
+    
+    // Calculate current online status based on last seen time
+    const isOnline = user.is_online === 1 && user.last_seen_at !== null && 
+      new Date(user.last_seen_at) > new Date(Date.now() - 5 * 60 * 1000);
+    
+    return {
+      ...this.#normalizeUser(user),
+      is_online: isOnline ? 1 : 0
+    };
   }
 
   static async findByEmail(email) {
     const [rows] = await executeQuery(
-      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE email = ?",
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE email = ?",
       [email]
     );
 
-    return this.#normalizeUser(rows[0]);
+    const user = rows[0];
+    if (!user) return null;
+    
+    // Calculate current online status based on last seen time
+    const isOnline = user.is_online === 1 && user.last_seen_at !== null && 
+      new Date(user.last_seen_at) > new Date(Date.now() - 5 * 60 * 1000);
+    
+    return {
+      ...this.#normalizeUser(user),
+      is_online: isOnline ? 1 : 0
+    };
   }
 
   static async findByUsername(username) {
     const [rows] = await executeQuery(
-      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE username = ?",
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE username = ?",
       [username]
     );
 
-    return this.#normalizeUser(rows[0]);
+    const user = rows[0];
+    if (!user) return null;
+    
+    // Calculate current online status based on last seen time
+    const isOnline = user.is_online === 1 && user.last_seen_at !== null && 
+      new Date(user.last_seen_at) > new Date(Date.now() - 5 * 60 * 1000);
+    
+    return {
+      ...this.#normalizeUser(user),
+      is_online: isOnline ? 1 : 0
+    };
   }
 
   static async findByEmailOrUsername(emailOrUsername) {
     const [rows] = await executeQuery(
-      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE email = ? OR username = ?",
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE email = ? OR username = ?",
       [emailOrUsername, emailOrUsername]
     );
 
-    return this.#normalizeUser(rows[0]);
+    const user = rows[0];
+    if (!user) return null;
+    
+    // Calculate current online status based on last seen time
+    const isOnline = user.is_online === 1 && user.last_seen_at !== null && 
+      new Date(user.last_seen_at) > new Date(Date.now() - 5 * 60 * 1000);
+    
+    return {
+      ...this.#normalizeUser(user),
+      is_online: isOnline ? 1 : 0
+    };
   }
 
   static async getAll() {
     const [rows] = await executeQuery(
-      "SELECT id, email, username, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users ORDER BY created_at DESC"
+      "SELECT id, email, username, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users ORDER BY created_at DESC"
     );
 
-    return this.#normalizeUsers(rows);
+    // Calculate current online status for each user
+    return this.#normalizeUsers(rows).map(user => ({
+      ...user,
+      is_online: user.is_online === 1 && user.last_seen_at !== null && 
+        new Date(user.last_seen_at) > new Date(Date.now() - 5 * 60 * 1000) ? 1 : 0
+    }));
   }
 
   static async updateProfile(id, { name, username, avatar, timezone }) {
@@ -133,9 +181,13 @@ class User {
   }
 
   static async updateOnlineStatus(id) {
+    // Update online status based on last seen time (within 5 minutes)
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    
     await executeQuery(
-      "UPDATE users SET is_online = CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') THEN 1 ELSE 0 END WHERE id = ?",
-      [id]
+      "UPDATE users SET is_online = CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at, 'unixepoch') > ? THEN 1 ELSE 0 END WHERE id = ?",
+      [fiveMinutesAgo.getTime() / 1000, id]
     );
 
     return this.findById(id);
@@ -143,10 +195,14 @@ class User {
 
   static async getOnlineUsers() {
     const [rows] = await executeQuery(
-      "SELECT id, email, username, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes', 'utc') ORDER BY username ASC"
+      "SELECT id, email, username, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE is_online = 1 AND last_seen_at IS NOT NULL ORDER BY username ASC"
     );
 
-    return this.#normalizeUsers(rows);
+    // Filter users who are actually online based on last seen time
+    return this.#normalizeUsers(rows).filter(user => 
+      user.last_seen_at !== null && 
+      new Date(user.last_seen_at) > new Date(Date.now() - 5 * 60 * 1000)
+    );
   }
 }
 

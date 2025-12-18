@@ -13,8 +13,36 @@ interface AvatarCropperProps {
 
 const AvatarCropper: React.FC<AvatarCropperProps> = ({ imageSrc, onCropComplete, onCancel }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // const [isDragging, setIsDragging] = useState(false);
   const [cropArea, setCropArea] = useState({ x: 50, y: 50, size: 100 });
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
+
+  // Load and draw image when component mounts
+  React.useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      setImage(img);
+      // Fit image to canvas
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Calculate scaling to fit image in canvas
+          const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+          const scaledWidth = img.width * scale;
+          const scaledHeight = img.height * scale;
+          const offsetX = (canvas.width - scaledWidth) / 2;
+          const offsetY = (canvas.height - scaledHeight) / 2;
+          
+          // Clear canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw image centered
+          ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
+        }
+      }
+    };
+    img.src = imageSrc;
+  }, [imageSrc]);
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -35,7 +63,7 @@ const AvatarCropper: React.FC<AvatarCropperProps> = ({ imageSrc, onCropComplete,
 
   const handleCrop = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !image) return;
 
     const croppedCanvas = document.createElement('canvas');
     const ctx = croppedCanvas.getContext('2d');
@@ -44,19 +72,27 @@ const AvatarCropper: React.FC<AvatarCropperProps> = ({ imageSrc, onCropComplete,
     croppedCanvas.width = 200;
     croppedCanvas.height = 200;
 
-    // Create image and crop
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(
-        img,
-        cropArea.x, cropArea.y, cropArea.size, cropArea.size,
-        0, 0, 200, 200
-      );
-      
-      const croppedDataUrl = croppedCanvas.toDataURL('image/jpeg', 0.8);
-      onCropComplete(croppedDataUrl);
-    };
-    img.src = imageSrc;
+    // Scale and crop the image
+    const scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+    const scaledWidth = image.width * scale;
+    const scaledHeight = image.height * scale;
+    const offsetX = (canvas.width - scaledWidth) / 2;
+    const offsetY = (canvas.height - scaledHeight) / 2;
+    
+    // Calculate source coordinates for the crop area
+    const sourceX = (cropArea.x - offsetX) / scale;
+    const sourceY = (cropArea.y - offsetY) / scale;
+    const sourceSize = cropArea.size / scale;
+
+    // Draw cropped image
+    ctx.drawImage(
+      image,
+      sourceX, sourceY, sourceSize, sourceSize,
+      0, 0, 200, 200
+    );
+    
+    const croppedDataUrl = croppedCanvas.toDataURL('image/jpeg', 0.8);
+    onCropComplete(croppedDataUrl);
   };
 
   return (
@@ -109,13 +145,35 @@ export const ProfilePage: React.FC = () => {
   const { navigate } = useNavigation();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
+  const [timezone, setTimezone] = useState(user?.timezone || 'UTC');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleNameUpdate = async () => {
+  // Update timezone when user changes
+  React.useEffect(() => {
+    if (user?.timezone) {
+      setTimezone(user.timezone);
+    }
+  }, [user?.timezone]);
+
+  // List of common timezones
+  const timezones = [
+    { value: 'UTC', label: 'UTC' },
+    { value: 'Europe/Moscow', label: 'Москва (UTC+3)' },
+    { value: 'Europe/London', label: 'Лондон (UTC+0)' },
+    { value: 'America/New_York', label: 'Нью-Йорк (UTC-5)' },
+    { value: 'America/Los_Angeles', label: 'Лос-Анджелес (UTC-8)' },
+    { value: 'Asia/Tokyo', label: 'Токио (UTC+9)' },
+    { value: 'Asia/Shanghai', label: 'Пекин (UTC+8)' },
+    { value: 'Europe/Paris', label: 'Париж (UTC+1)' },
+    { value: 'Europe/Berlin', label: 'Берлин (UTC+1)' },
+    { value: 'Australia/Sydney', label: 'Сидней (UTC+11)' }
+  ];
+
+  const handleProfileUpdate = async () => {
     if (!name.trim()) {
       setError('Имя не может быть пустым');
       return;
@@ -125,7 +183,10 @@ export const ProfilePage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await messengerApi.updateProfile({ name: name.trim() });
+      const response = await messengerApi.updateProfile({ 
+        name: name.trim(), 
+        timezone: timezone 
+      });
       if (response.success && response.data) {
         updateUser(response.data);
         setIsEditing(false);
@@ -134,6 +195,27 @@ export const ProfilePage: React.FC = () => {
       }
     } catch (err) {
       setError('Ошибка обновления профиля');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTimezoneChange = async (newTimezone: string) => {
+    if (newTimezone === timezone) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await messengerApi.updateProfile({ timezone: newTimezone });
+      if (response.success && response.data) {
+        updateUser(response.data);
+        setTimezone(newTimezone);
+      } else {
+        setError(response.error || 'Ошибка обновления часового пояса');
+      }
+    } catch (err) {
+      setError('Ошибка обновления часового пояса');
     } finally {
       setIsLoading(false);
     }
@@ -269,7 +351,7 @@ export const ProfilePage: React.FC = () => {
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={handleNameUpdate}
+                    onClick={handleProfileUpdate}
                     disabled={isLoading || !name.trim()}
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
@@ -279,6 +361,7 @@ export const ProfilePage: React.FC = () => {
                     onClick={() => {
                       setIsEditing(false);
                       setName(user.name);
+                      setTimezone(user.timezone || 'UTC');
                       setError(null);
                     }}
                     disabled={isLoading}
@@ -302,16 +385,33 @@ export const ProfilePage: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-gray-600">{user.email}</p>
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  <span className="text-sm text-gray-600">
-                    {user.isOnline ? 'В сети' : 'Не в сети'}
-                  </span>
-                  {user.lastSeenAt && (
-                    <span className="text-sm text-gray-500">
-                      последняя активность: {new Date(user.lastSeenAt).toLocaleString('ru-RU')}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    <span className="text-sm text-gray-600">
+                      {user.isOnline ? 'В сети' : 'Не в сети'}
                     </span>
-                  )}
+                    {user.lastSeenAt && (
+                      <span className="text-sm text-gray-500">
+                        последняя активность: {new Date(user.lastSeenAt).toLocaleString('ru-RU')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-600">Часовой пояс:</label>
+                    <select
+                      value={timezone}
+                      onChange={(e) => handleTimezoneChange(e.target.value)}
+                      disabled={isLoading}
+                      className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      {timezones.map((tz) => (
+                        <option key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             )}
