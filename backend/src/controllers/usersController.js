@@ -158,6 +158,13 @@ export const updateActivity = async (req, res) => {
     
     const updatedUser = await User.updateLastSeen(currentUserId);
     
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Пользователь не найден'
+      });
+    }
+    
     // Remove password_hash from response
     const sanitizedUser = {
       id: updatedUser.id,

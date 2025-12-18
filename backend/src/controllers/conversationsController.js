@@ -15,6 +15,10 @@ export const getConversations = async (req, res) => {
         const otherUserId = conv.user1_id === userId ? conv.user2_id : conv.user1_id;
         const otherUser = await User.findById(otherUserId);
         
+        if (!otherUser) {
+          return null;
+        }
+        
         // Get last message
         const lastMessage = await Conversation.getLastMessage(conv.id);
         
@@ -40,7 +44,7 @@ export const getConversations = async (req, res) => {
           updatedAt: conv.updated_at
         };
       })
-    );
+    ).then(results => results.filter(result => result !== null));
     
     res.json({
       success: true,
