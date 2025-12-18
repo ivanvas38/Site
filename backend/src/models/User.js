@@ -37,7 +37,7 @@ class User {
 
   static async findById(id) {
     const [rows] = await executeQuery(
-      'SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE id = ?',
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE id = ?",
       [id]
     );
 
@@ -46,7 +46,7 @@ class User {
 
   static async findByEmail(email) {
     const [rows] = await executeQuery(
-      'SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE email = ?',
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE email = ?",
       [email]
     );
 
@@ -55,7 +55,7 @@ class User {
 
   static async findByUsername(username) {
     const [rows] = await executeQuery(
-      'SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE username = ?',
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE username = ?",
       [username]
     );
 
@@ -64,7 +64,7 @@ class User {
 
   static async findByEmailOrUsername(emailOrUsername) {
     const [rows] = await executeQuery(
-      'SELECT id, email, username, password_hash, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE email = ? OR username = ?',
+      "SELECT id, email, username, password_hash, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE email = ? OR username = ?",
       [emailOrUsername, emailOrUsername]
     );
 
@@ -73,7 +73,7 @@ class User {
 
   static async getAll() {
     const [rows] = await executeQuery(
-      'SELECT id, email, username, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users ORDER BY created_at DESC'
+      "SELECT id, email, username, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users ORDER BY created_at DESC"
     );
 
     return this.#normalizeUsers(rows);
@@ -115,14 +115,26 @@ class User {
   }
 
   static async updateLastSeen(id) {
-    await executeQuery('UPDATE users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
+    await executeQuery(
+      'UPDATE users SET last_seen_at = CURRENT_TIMESTAMP, is_online = 1 WHERE id = ?',
+      [id]
+    );
 
-    return this.updateOnlineStatus(id);
+    return this.findById(id);
+  }
+
+  static async setOffline(id) {
+    await executeQuery(
+      'UPDATE users SET last_seen_at = CURRENT_TIMESTAMP, is_online = 0 WHERE id = ?',
+      [id]
+    );
+
+    return this.findById(id);
   }
 
   static async updateOnlineStatus(id) {
     await executeQuery(
-      "UPDATE users SET is_online = (last_seen_at > datetime('now', '-5 minutes')) WHERE id = ?",
+      "UPDATE users SET is_online = CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') THEN 1 ELSE 0 END WHERE id = ?",
       [id]
     );
 
@@ -131,7 +143,7 @@ class User {
 
   static async getOnlineUsers() {
     const [rows] = await executeQuery(
-      'SELECT id, email, username, avatar, last_seen_at, is_online, timezone, created_at, updated_at FROM users WHERE is_online = 1 ORDER BY username ASC'
+      "SELECT id, email, username, avatar, last_seen_at, CASE WHEN is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') THEN 1 ELSE 0 END AS is_online, timezone, created_at, updated_at FROM users WHERE is_online = 1 AND last_seen_at IS NOT NULL AND datetime(last_seen_at) > datetime('now', '-5 minutes') ORDER BY username ASC"
     );
 
     return this.#normalizeUsers(rows);
